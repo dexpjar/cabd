@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block style %}
+<link href="{% static 'css/principal.css' %}" rel="stylesheet"/>
+<link href="{% static 'css/bjqs.css' %}" rel="stylesheet"/>
+{% endblock %}
+
+{% block link %}
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script type="text/javascript" src="{% static 'js/principal.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/bjqs-1.3.min.js' %}"></script>
+{% endblock %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="wrap">
+                <div class="content">
+                    <div id="slideshow">
+                        <ul class="bjqs">
+                            <li><img src="{% static 'img/banner01.jpg' %}" title="Automatically generated caption"></li>
+                            <li><img src="{% static 'img/banner02.jpg' %}" title="Automatically generated caption"></li>
+                            <li><img src="{% static 'img/banner03.jpg' %}" title="Automatically generated caption"></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-1"></div>
+        <div class="col-sm-3 form-body">
+            <div class="panel-heading">
+                <!--<img id="photo-login" src="{% static 'img/cabd.jpg' %}" />-->
+                <h3 class="panel-title">Please sign in</h3>
+                <br />
+            </div>
+            <div class="panel-body">
+                <form accept-charset="UTF-8" method="POST" role="form" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <fieldset>
+                        <label>Username:</label>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Username" name="username" type="text">
+                        </div>
+                        <label>Password:</label>
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Password" name="password" type="password" value="">
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input name="remember" type="checkbox" value="Remember Me"> Remember Me
+                            </label>
+                        </div>
+                        <br />
+                        <input class="btn btn-lg btn-success btn-block" type="submit" value="Login">
+                        <a class="d-block small mt-3" id="register" href="{% url 'principal:create-user-view' %}">Register an Account</a>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    jQuery(document).ready(function($) {
+	    $('#slideshow').bjqs({
+		    'height' : 768,
+		    'width' : 1366,
+		    'responsive' : true
+	    });
+    });
+</script>
+{% endblock %}

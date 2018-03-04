@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock %}
+{% block style %}
+    <!-- Bootstrap core CSS-->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Custom fonts for this template-->
+    <link href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+    <!-- Custom styles for this template-->
+    <link href="{% static 'css/sb-admin.css' %}" rel="stylesheet">
+    <link href="{% static 'css/register.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card card-register mx-auto mt-5">
+        <div class="card-header">
+            <h2>
+                Edit Profile
+            </h2>
+        </div>
+        <div class="card-body">
+            <!--<div class="text-right">-->
+                <!--<a class="btn btn-warning" data-toggle="modal" data-target="#passwordModal">-->
+                    <!--<i class="fa fa-key"></i> Change Password</a>-->
+            <!--</div>-->
+            <form action="{% url 'principal:edit-user-view' user.pk %}" method="post">
+                <div class="form-group">
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            {{ userform.first_name.errors }}
+                            <label>First name: </label>
+                            {{ userform.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ userform.last_name.errors }}
+                            <label>Last name: </label>
+                            {{ userform.last_name }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ userform.email.errors }}
+                    <label>Email: </label>
+                    {{ userform.email }}
+                </div>
+                <div class="form-group">
+                    {{ userprofileform.institution.errors }}
+                    <label>Institution: </label>
+                    {{ userprofileform.institution }}
+                </div>
+                {% csrf_token %}
+                <input class="btn btn-primary btn-block" type="submit" value="Save Changes">
+            </form>
+            <br/>
+            <div class="text-right">
+                <a class="btn btn-danger" href="{% url 'principal:list-apps-view' %}"><i class="fa fa-mail-reply"></i> Back To Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block link %}
+<!-- Bootstrap core JavaScript-->
+<script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<!-- Core plugin JavaScript-->
+<script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+{% endblock %}
