@@ -198,6 +198,14 @@ body.fixed-nav {
   }
 }
 
+.name_user{
+    color: white;
+    font-size: 16px;
+}
+.email_user{
+    font-size: 14px;
+}
+
 #mainNav.fixed-top .sidenav-toggler {
   display: none;
 }

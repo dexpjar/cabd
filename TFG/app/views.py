@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
@@ -7,11 +9,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect, render_to_response
 
 from django.views import View
-from django.views.generic import ListView, CreateView, UpdateView
+from django.views.generic import ListView, CreateView, UpdateView, FormView
 
-from app.forms import RegisterForm,ProfileForm,EditForm
-from app.models import App, User, Profile, Task
-from django.contrib.auth.forms import UserCreationForm
+from app.forms import RegisterForm, ProfileForm, EditForm, LoginForm
+from app.models import App, User, Profile, Task, Section, MyCompany, ImageSlideshow
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.urlresolvers import reverse_lazy
 
 
@@ -20,7 +22,7 @@ def create_user_view(request):
     if request.method == 'POST':
         register = RegisterForm(request.POST, prefix='register')
         usrprofile = ProfileForm(request.POST, prefix='profile')
-        if register.is_valid() * usrprofile.is_valid():
+        if register.is_valid() and usrprofile.is_valid():
             user = register.save()
             user.set_password(register.cleaned_data['password'])
             user.save()
@@ -40,20 +42,51 @@ def create_user_view(request):
         userprofileform = ProfileForm(prefix='profile')
         return render(request, 'register.html', {'userform': userform, 'userprofileform': userprofileform})
 
+class Login(FormView):
+    # Establecemos la plantilla a utilizar
+    template_name = 'index.html'
+    # Le indicamos que el formulario a utilizar es el formulario de autenticación de Django
+    form_class = AuthenticationForm
+    form_class.base_fields['username'].widget.attrs['class'] = "form-control"
+    form_class.base_fields['password'].widget.attrs['class'] = "form-control"
+    form_class.company_name = MyCompany.objects.all()[:1].get()
+    form_class.first_slideshow = ImageSlideshow.objects.all()[:1].get()
+    form_class.slideshows = ImageSlideshow.objects.all()
+    form_class.apps = App.objects.all()
+    # Le decimos que cuando se haya completado exitosamente la operación nos redireccione a la url bienvenida de la aplicación personas
+    success_url = reverse_lazy("principal:list-apps-view")
 
-@login_required
-def index_view(request):
+    def dispatch(self, request, *args, **kwargs):
+        # Si el usuario está autenticado entonces nos direcciona a la url establecida en success_url
+        if request.user.is_authenticated():
+            return HttpResponseRedirect(self.get_success_url())
+        # Sino lo está entonces nos muestra la plantilla del login simplemente
+        else:
+            company = MyCompany.objects.all()[:1].get()
+            company_name = company.name
+            args = company_name
+            return super(Login, self).dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        login(self.request, form.get_user())
+        return super(Login, self).form_valid(form)
+
+def contact_view(request):
+    company_name = MyCompany.objects.all()[:1].get()
     context = {
-        'sample_var': "ejemplo"
+        'company_name': company_name,
     }
-    return render(request, 'principal.html', context)
+    return render(request, 'contact.html', context)
 
 @login_required
 def detail_app_view(request,pk):
     apps = App.objects.all()
+    app_select = App.objects.get(pk=pk)
+    sections = Section.objects.filter(app=app_select)
     context = {
         'apps': apps,
-        'app_select': App.objects.get(pk=pk)
+        'app_select': app_select,
+        'sections': sections
     }
     return render(request, 'app_detail.html', context)
 

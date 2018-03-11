@@ -15,6 +15,14 @@ body.sticky-footer .content-wrapper {
   min-height: calc(100vh - 56px - 56px);
 }
 
+.sections{
+    margin:7px;
+}
+
+.apps{
+    margin:7px;
+}
+
 body.fixed-nav {
   padding-top: 56px;
 }
@@ -360,6 +368,8 @@ body.sidenav-toggled .navbar-sidenav-tooltip.show {
 @media (min-width: 992px) {
   #mainNav.navbar-dark .navbar-collapse .navbar-sidenav {
     background: #343a40;
+    /*background: url("/static/img/bg-sidebar.jpg") 0% 0 no-repeat fixed;
+    filter:brightness(0.4);*/
   }
   #mainNav.navbar-dark .navbar-collapse .navbar-sidenav li.active a {
     color: white !important;
