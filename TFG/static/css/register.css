@@ -1,8 +1,0 @@
-body{
-    background: url("/static/img/bg-login.jpg") 50% 0 no-repeat fixed;
-}
-.card-register{
-    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
-    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
-    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
-}

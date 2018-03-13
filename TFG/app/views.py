@@ -40,7 +40,8 @@ def create_user_view(request):
     else:
         userform = RegisterForm(prefix='register')
         userprofileform = ProfileForm(prefix='profile')
-        return render(request, 'register.html', {'userform': userform, 'userprofileform': userprofileform})
+        company_name = MyCompany.objects.all()[:1].get()
+        return render(request, 'register.html', {'company_name': company_name, 'userform': userform, 'userprofileform': userprofileform})
 
 class Login(FormView):
     # Establecemos la plantilla a utilizar

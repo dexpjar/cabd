@@ -30,7 +30,7 @@ body {
 }
 
 #gtco-header{
-    background: url("/static/img/bg-login.jpg") 50% 0 no-repeat fixed;
+    background: url("/static/img/blur-bg.jpg") 50% 0 no-repeat fixed;
 }
 
 .offcanvas #page {
@@ -241,9 +241,7 @@ h1, h2, h3, h4, h5, h6, figure {
   color: #fff !important;
 }
 
-#gtco-header {
-  background: #4d4d4d;
-}
+
 @media screen and (max-width: 992px) {
   #gtco-header.gtco-cover {
     height: inherit !important;
@@ -274,7 +272,7 @@ h1, h2, h3, h4, h5, h6, figure {
   display: block;
   margin-bottom: 10px;
 }
-#gtco-header h1, #gtco-header h2 {
+#gtco-header h1{
   margin: 0;
   padding: 0;
   color: white;
@@ -450,7 +448,7 @@ h1, h2, h3, h4, h5, h6, figure {
   float: left;
   width: 100%;
 }
-.gtco-cover a {
+.link-register a {
   color: #09C6AB;
   font-weight: bold;
 }
@@ -1290,11 +1288,6 @@ form label {
   outline: none !important;
 }
 
-.btn-primary {
-  background: #09C6AB;
-  color: #fff;
-  border: 2px solid #09C6AB !important;
-}
 .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
   background: #0adec0 !important;
   border-color: #0adec0 !important;
@@ -1892,6 +1885,21 @@ form label {
 .send-question{
   color: white;
 }
+.card-body{
+  background-color: white;
+  padding: 20px;
+  width: 100%;
+  font-size: 16px;
+}
 
+.h2-register{
+  color: black;
+}
+.register-header{
+  height: 800px;
+}
 
+.row-form-register{
+  padding-bottom: 30px;
+}
 /*# sourceMappingURL=style.css.map */

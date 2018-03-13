@@ -100,17 +100,16 @@
     <div class="container-fluid apps">
         <!-- Icon Cards-->
         <div class="row">
-            <div class="col-xs-6">
+            <div class="col-2">
+                <img src="{{ app_select.image.url }}" alt="{{ app_select.name }}" />
+            </div>
+            <div class="col-6">
                 <h1>{{ app_select.name }}</h1>
                 <p>{{ app_select.description }}</p>
-            </div>
-            <div class="col-xs-6">
-                <img src="{{ app_select.image.url }}" alt="{{ app_select.name }}" />
-                <br/>
-                <br/>
                 <a href="#" class="btn btn-primary"><i class="fa fa-list-alt" aria-hidden="true"></i> Go to form</a>
             </div>
         </div>
+        <br/>
         {% for section in sections %}
         <div class="row sections">
             <div class="card">
