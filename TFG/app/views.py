@@ -94,12 +94,13 @@ def detail_app_view(request,pk):
 class AppListView(LoginRequiredMixin, View):
     def get(self, request):
         apps = App.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
         try:
             tasks = Task.objects.get(user=current_user)
         except Task.DoesNotExist:
             tasks = None
-        return render(request, "dashboard.html", {'apps': apps, 'user': current_user, 'tasks': tasks})
+        return render(request, "dashboard.html", {'apps': apps, 'user': current_user, 'tasks': tasks, 'company_name': company_name})
 
 class AppListViewAlt(ListView):
     model = App
