@@ -189,6 +189,7 @@ class UserUpdate(UpdateView):
         if 'userprofileform' not in context:
             context['userprofileform'] = self.second_form_class(instance=profile)
         context['id'] = pk
+        context['company_name'] = MyCompany.objects.all()[:1].get()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -204,4 +205,5 @@ class UserUpdate(UpdateView):
             return HttpResponseRedirect(self.get_success_url())
         else:
             current_user = request.user
-            return render(request, "edit_profile.html", {'userform': userform, 'userprofileform': userprofileform, 'user': current_user})
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "edit_profile.html", {'userform': userform, 'userprofileform': userprofileform, 'user': current_user, 'company_name': company_name})

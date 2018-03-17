@@ -1,71 +1,214 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
 {% load static %}
-
-{% block title %}Edit Profile{% endblock %}
-{% block style %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>CABD-Edit Profile</title>
     <!-- Bootstrap core CSS-->
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-    <!-- Custom fonts for this template-->
-    <link href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
-    <!-- Custom styles for this template-->
-    <link href="{% static 'css/sb-admin.css' %}" rel="stylesheet">
-    <link href="{% static 'css/register.css' %}" rel="stylesheet">
-{% endblock %}
+    <link href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet"/>
+    <link href="{% static 'css/footer-distributed-with-address-and-phones.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+    <link href="http://fonts.googleapis.com/css?family=Cookie" rel="stylesheet" type="text/css">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="{% static 'css/animate.css' %}">
+    <!-- Icomoon Icon Fonts-->
+    <link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
+    <!-- Themify Icons-->
+    <link rel="stylesheet" href="{% static 'css/themify-icons.css' %}">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet">
+    <!-- Theme style  -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="{% static 'css/footer-distributed-with-address-and-phones.css' %}" rel="stylesheet">
 
-{% block content %}
-<div class="container">
-    <div class="card card-register mx-auto mt-5">
-        <div class="card-header">
-            <h2>
-                Edit Profile
-            </h2>
+
+    <!-- Bootstrap  -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+
+    <!-- Magnific Popup -->
+    <link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}">
+
+    <!-- Magnific Popup -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap-datepicker.min.css' %}">
+
+    <!-- Owl Carousel  -->
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/owl.theme.default.min.css' %}">
+
+    <!-- Modernizr JS -->
+    <script src="{% static 'js/modernizr-2.6.2.min.js' %}"></script>
+</head>
+<body>
+
+<div id="page">
+    <nav class="gtco-nav" role="navigation">
+        <div class="gtco-container">
+
+            <div class="row">
+                <div class="col-sm-6 col-xs-12">
+                    <div id="gtco-logo"><a href="{% url 'login' %}">{{ company_name.name }} <em>.</em></a></div>
+                </div>
+                <div class="col-xs-6 text-right menu-1">
+                    <ul>
+                        <li><a href="{% url 'login' %}">Home</a></li>
+                        <li><a href="destination.html">Citations</a></li>
+                        <li class="has-dropdown">
+                            <a href="#">Help</a>
+                            <ul class="dropdown">
+                                <li><a href="#">Europe</a></li>
+                                <li><a href="#">Asia</a></li>
+                                <li><a href="#">America</a></li>
+                                <li><a href="#">Canada</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="pricing.html">About</a></li>
+                        <li><a href="{% url 'principal:contact-view' %}">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+
         </div>
-        <div class="card-body">
-            <!--<div class="text-right">-->
-                <!--<a class="btn btn-warning" data-toggle="modal" data-target="#passwordModal">-->
-                    <!--<i class="fa fa-key"></i> Change Password</a>-->
-            <!--</div>-->
-            <form action="{% url 'principal:edit-user-view' user.pk %}" method="post">
-                <div class="form-group">
-                    <div class="form-row">
-                        <div class="col-md-6">
-                            {{ userform.first_name.errors }}
-                            <label>First name: </label>
-                            {{ userform.first_name }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ userform.last_name.errors }}
-                            <label>Last name: </label>
-                            {{ userform.last_name }}
+    </nav>
+    <header id="gtco-header" class="gtco-cover gtco-cover-md register-header" role="banner">
+        <div class="overlay"></div>
+        <div class="gtco-container">
+            <div class="gtco-section">
+                <div class="gtco-container">
+                    <div class="row">
+                        <div class="col-md-10 col-md-offset-1">
+                            <div class="row row-mt-15em">
+                                <div class="card-body">
+                                    <form action="{% url 'principal:edit-user-view' user.pk %}" method="post">
+                                        <div class="text-center">
+                                            <h2 id="h2-register">Edit Profile</h2>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    {{ userform.first_name.errors }}
+                                                    <label>First name: </label>
+                                                    {{ userform.first_name }}
+                                                </div>
+                                                <div class="col-6">
+                                                    {{ userform.last_name.errors }}
+                                                    <label>Last name: </label>
+                                                    {{ userform.last_name }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    {{ userform.email.errors }}
+                                                    <label>Email: </label>
+                                                    {{ userform.email }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    {{ userprofileform.institution.errors }}
+                                                    <label>Institution: </label>
+                                                    {{ userprofileform.institution }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% csrf_token %}
+                                        <br/>
+                                        <input class="btn btn-primary btn-block" type="submit" value="Save Changes">
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    {{ userform.email.errors }}
-                    <label>Email: </label>
-                    {{ userform.email }}
-                </div>
-                <div class="form-group">
-                    {{ userprofileform.institution.errors }}
-                    <label>Institution: </label>
-                    {{ userprofileform.institution }}
-                </div>
-                {% csrf_token %}
-                <input class="btn btn-primary btn-block" type="submit" value="Save Changes">
-            </form>
-            <br/>
-            <div class="text-right">
-                <a class="btn btn-danger" href="{% url 'principal:list-apps-view' %}"><i class="fa fa-mail-reply"></i> Back To Dashboard</a>
             </div>
         </div>
-    </div>
+    </header>
 </div>
-{% endblock %}
+<footer class="footer-distributed">
+    <div class="footer-left">
 
-{% block link %}
-<!-- Bootstrap core JavaScript-->
-<script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
-<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-<!-- Core plugin JavaScript-->
-<script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
-{% endblock %}
+        <h3>Centro Andaluz De <span>Biología Del Desarrollo</span></h3>
+
+        <p class="footer-links">
+            <a href="#">Citations</a>
+            ·
+            <a href="#">Help</a>
+            ·
+            <a href="#">About</a>
+            ·
+            <a href="#">Contact</a>
+        </p>
+
+        <p class="footer-company-name">CABD &copy; 2018</p>
+    </div>
+
+    <div class="footer-center">
+
+        <div>
+            <i class="fa fa-map-marker"></i>
+            <p><span>{{ company_name.address }}</span> Seville, Spain</p>
+        </div>
+
+        <div>
+            <i class="fa fa-phone"></i>
+            <p>{{ company_name.phone }}</p>
+        </div>
+
+        <div>
+            <i class="fa fa-envelope"></i>
+            <p>{{ company_name.email }}</p>
+        </div>
+
+    </div>
+
+    <div class="footer-right">
+
+        <p class="footer-company-about">
+            <span>About the company</span>
+            {{ company_name.description }}
+        </p>
+
+        <div class="footer-icons">
+
+            <a href="#"><i class="fa fa-facebook"></i></a>
+            <a href="#"><i class="fa fa-twitter"></i></a>
+            <a href="#"><i class="fa fa-linkedin"></i></a>
+            <a href="#"><i class="fa fa-github"></i></a>
+
+        </div>
+
+    </div>
+
+</footer>
+<!-- jQuery -->
+<script src="{% static 'node_modules/jquery/dist/jquery.min.js' %}"></script>
+<!-- jQuery Easing -->
+<script src="{% static 'js/jquery.easing.1.3.js' %}"></script>
+<!-- Bootstrap -->
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<!-- Waypoints -->
+<script src="{% static 'js/jquery.waypoints.min.js' %}"></script>
+<!-- Carousel -->
+<script src="{% static 'js/owl.carousel.min.js' %}"></script>
+<!-- countTo -->
+<script src="{% static 'js/jquery.countTo.js' %}"></script>
+
+<!-- Stellar Parallax -->
+<script src="{% static 'js/jquery.stellar.min.js' %}"></script>
+
+<!-- Magnific Popup -->
+<script src="{% static 'js/jquery.magnific-popup.min.js' %}"></script>
+<script src="{% static 'js/magnific-popup-options.js' %}"></script>
+
+<!-- Datepicker -->
+<script src="{% static 'js/bootstrap-datepicker.min.js' %}"></script>
+
+
+<!-- Main -->
+<script src="{% static 'js/main.js' %}"></script>
+
+</body>
+</html>
