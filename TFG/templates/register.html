@@ -78,7 +78,7 @@
                         <div class="col-md-10 col-md-offset-1">
                             <div class="row row-mt-15em">
                                 <div class="card-body">
-                                    <form action="{% url 'principal:create-user-view' %}" method="post">
+                                    <form action="{% url 'principal:create-user-view' %}" method="post" id="form_register">
                                         <div class="text-center">
                                             <h2 id="h2-register">Register an Account</h2>
                                         </div>
@@ -88,11 +88,23 @@
                                                     {{ userform.first_name.errors }}
                                                     <label>First name: </label>
                                                     {{ userform.first_name }}
+                                                    <div id="error_first_name_required" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> First name required
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div class="col-6">
                                                     {{ userform.last_name.errors }}
                                                     <label>Last name: </label>
                                                     {{ userform.last_name }}
+                                                    <div id="error_last_name_required" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> Last name required
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -102,10 +114,22 @@
                                                     {{ userform.email.errors }}
                                                     <label>Email: </label>
                                                     {{ userform.email }}
+                                                    <div id="error_email_required" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> Email required
+                                                        </div>
+                                                    </div>
+                                                    <div id="error_email" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> Invalid email
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="form-group">
+                                        <div class="form-group" style="display:none;">
                                             <div class="row">
                                                 <div class="col-md-12">
                                                     {{ userform.username.errors }}
@@ -120,6 +144,12 @@
                                                     {{ userprofileform.institution.errors }}
                                                     <label>Institution: </label>
                                                     {{ userprofileform.institution }}
+                                                    <div id="error_institution_required" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> Institution required
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -129,17 +159,47 @@
                                                     {{ userform.password.errors }}
                                                     <label>Password: </label>
                                                     {{ userform.password }}
+                                                    <div id="error_password_required" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> Password required
+                                                        </div>
+                                                    </div>
+                                                    <div id="error_password_length" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> The password must have a minimum of 8 digits
+                                                        </div>
+                                                    </div>
+                                                    <div id="error_password_format" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> The password must contain uppercase, lowercase and number
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div class="col-6">
                                                     <label>Confirm password</label>
-                                                    <input class="form-control" id="confirmPassword" type="password"
+                                                    <input class="form-control" id="confirmPassword" type="password" data-validate-linked="password"
                                                            placeholder="Confirm password">
+                                                    <div id="error_confirm_password_required" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> Password required confirmation
+                                                        </div>
+                                                    </div>
+                                                    <div id="error_confirm_password" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> Passwords don't match
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                         {% csrf_token %}
                                         <br/>
-                                        <input class="btn btn-primary btn-block" type="submit" value="Register">
+                                        <input id="button_register" class="btn btn-primary btn-block" type="submit" value="Register">
                                     </form>
                                 </div>
                             </div>
@@ -148,12 +208,13 @@
                 </div>
             </div>
         </div>
+        <br/><br/><br/>
     </header>
 </div>
 <footer class="footer-distributed">
     <div class="footer-left">
 
-        <h3>Centro Andaluz De <span>Biología Del Desarrollo</span></h3>
+        <h3>Gene & Genome <span>Annotation For Everybody</span></h3>
 
         <p class="footer-links">
             <a href="#">Citations</a>
@@ -232,6 +293,9 @@
 
 <!-- Main -->
 <script src="{% static 'js/main.js' %}"></script>
+
+<!-- Validator -->
+<script src="{% static 'js/validations/register_validation.js' %}"></script>
 
 </body>
 </html>

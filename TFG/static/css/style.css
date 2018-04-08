@@ -440,7 +440,7 @@ h1, h2, h3, h4, h5, h6, figure {
 }
 
 .gtco-cover {
-  height: 650px;
+  height: auto;
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -1895,9 +1895,9 @@ form label {
 .h2-register{
   color: black;
 }
-.register-header{
+/*.register-header{
   height: 800px;
-}
+}*/
 
 .row-form-register{
   padding-bottom: 30px;

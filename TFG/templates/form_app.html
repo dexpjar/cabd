@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 
 <head>
     <meta charset="utf-8">
@@ -27,6 +27,8 @@
     <link href="{% static 'css/responsive.bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/scroller.bootstrap.min.css' %}" rel="stylesheet">
 
+    <!-- Css Form App -->
+    <link href="{% static 'css/form_app.css' %}" rel="stylesheet">
 </head>
 
 <body class="nav-md">
@@ -117,87 +119,59 @@
             <!-- /top navigation -->
 
             <!-- page content -->
-            <!-- Box with application -->
             <div class="right_col" role="main">
                 <div class="">
-                    <div class="row top_tiles">
-                        <div class="container-fluid apps">
-                            <!-- Icon Cards-->
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <img src="{{ app_select.image.url }}" alt="{{ app_select.name }}"/>
-                                </div>
-                                <div class="col-md-8">
-                                    <h1>{{ app_select.name }}</h1>
-                                    <p>{{ app_select.description }}</p>
-                                </div>
-                            </div>
-                            <br/>
-                            <div class="row">
-                                <div class="col-md-12 col-sm-12 col-xs-12">
-                                    <div class="x_panel">
-                                        <div class="x_title">
-                                            <h2>Tasks Executed</h2>
-
-                                            <ul class="nav navbar-right panel_toolbox">
-                                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                                                </li>
-                                                <li><a class="close-link"><i class="fa fa-close"></i></a>
-                                                </li>
-                                            </ul>
-                                            <ul class="nav navbar-right panel_toolbox">
-                                                <a href="{% url 'principal:form-apps-view' app_select.pk %}" class="btn btn-primary"><i class="fa fa-plus" aria-hidden="true"></i> New Task</a>
-                                            </ul>
-                                            <div class="clearfix"></div>
-                                        </div>
-                                        <div class="x_content">
-                                            <table id="datatable" class="table table-striped table-bordered">
-                                                <thead>
-                                                <tr>
-                                                    <th>Taskcode</th>
-                                                    <th>Name</th>
-                                                    <th>State</th>
-                                                    <th>App</th>
-                                                    <th>Creation Date</th>
-                                                    <th>View Details</th>
-                                                    <th>Send Other Application</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {% if tasks %}
-                                                {% for task in tasks %}
-                                                <tr>
-                                                    <td>{{ task.taskcode }}</td>
-                                                    <td>{{ task.name }}</td>
-                                                    <td>{{ task.state }}</td>
-                                                    <td>{{ task.app.name }}</td>
-                                                    <td>{{ task.creation_date }}</td>
-                                                    <td></td>
-                                                    <td></td>
-                                                </tr>
-                                                {% endfor %}
-                                                {% else %}
-                                                <tr>
-                                                    <td colspan="7" style="text-align:center;">Not Result Found</td>
-                                                </tr>
-                                                {% endif %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% for section in sections %}
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12 col-xs-12">
                             <div class="x_panel">
                                 <div class="x_title">
-                                    <h3>{{ section.title }}</h3>
+                                    <h2>New Task
+                                        <small>for {{ app_select.name }}</small>
+                                    </h2>
                                     <div class="clearfix"></div>
                                 </div>
                                 <div class="x_content">
-                                    <p class="card-text">{{ section.description }}</p>
+                                    <br/>
+                                    <form action="{% url 'principal:create-task-view' app_select.id %}" method="post" id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
+                                        {% for param in params %}
+                                        <div class="form-group">
+                                            <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                                <div class="info-hover"><i class="fa fa-info-circle"  style="size:1px;"></i>
+                                                  <span class="tooltiptext">{{ param.info }}</span>
+                                                </div>
+                                                {{ param.name }}
+                                                {% if param.is_required == True %}
+                                                <span class="required">*</span>
+                                                {% endif %}
+                                            </label>
+                                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                                {% if param.state == 'read' %}
+                                                <input type="text" name="{{ param.id }}" required="required" readonly="readonly" class="form-control col-md-7 col-xs-12" value="{{ param.value }}">
+
+                                                {% elif param.state == 'file' and param.is_required == True %}
+                                                <input type="file" name="{{ param.id }}" required="required" class="form-control col-md-7 col-xs-12">
+                                                {% elif param.state == 'file' and param.is_required == False %}
+                                                <input type="file" name="{{ param.id }}" class="form-control col-md-7 col-xs-12">
+
+                                                {% elif param.state == 'text' and param.is_required == True %}
+                                                <input type="text" name="{{ param.id }}" required="required" class="form-control col-md-7 col-xs-12">
+                                                {% elif param.state == 'text' and param.is_required == False %}
+                                                {% elif param.state == 'text' and param.is_required == False %}
+                                                <input type="text" name="{{ param.id }}" class="form-control col-md-7 col-xs-12">
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        <div class="ln_solid"></div>
+                                        <div class="form-group">
+                                            <div class="col-md-offset-8">
+                                                <input type="submit" class="btn btn-success" value="Create task"/>
+                                            </div>
+                                        </div>
+                                        {% csrf_token %}
+                                    </form>
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
                     </div>
                 </div>

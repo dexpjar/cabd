@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import timestamp as timestamp
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect, render_to_response
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, FormView
 
-from app.forms import RegisterForm, ProfileForm, EditForm, LoginForm
-from app.models import App, User, Profile, Task, Section, MyCompany, ImageSlideshow
+from app.forms import RegisterForm, ProfileForm, EditForm, LoginForm, TaskForm
+from app.models import App, User, Profile, Task, Section, MyCompany, ImageSlideshow, ParamsInput
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.urlresolvers import reverse_lazy
+from django.utils import six
 
 
 #Funcion que comprueba que los campos del registro son validos y crea el usuario
@@ -25,18 +31,24 @@ def create_user_view(request):
         if register.is_valid() and usrprofile.is_valid():
             user = register.save()
             user.set_password(register.cleaned_data['password'])
+            user.is_active = False
             user.save()
             usrprof = usrprofile.save(commit=False)
             usrprof.user = user
             usrprof.subscribed = '1'
             usrprof.save()
-            # asunto = "Prueba Email"
-            # mensaje = user.email
-            # mail = EmailMessage(asunto, mensaje, to=['daniel_exja@hotmail.com'])
-            # mail.send()
+            company_name = MyCompany.objects.all()[:1].get()
+            asunto = "Account New "+ user.email
+            mensaje = "The user with email: "+ user.email+ "is trying to login, you have to active this account through the admin panel"
+            mail = EmailMessage(asunto, mensaje, to=['daniel.tfg.cabd@gmail.com'])
+            mail.send()
             return redirect('login')
         else:
-            return HttpResponse('errors')
+            userform = RegisterForm(prefix='register')
+            userprofileform = ProfileForm(prefix='profile')
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, 'register.html',
+                          {'company_name': company_name, 'userform': userform, 'userprofileform': userprofileform})
     else:
         userform = RegisterForm(prefix='register')
         userprofileform = ProfileForm(prefix='profile')
@@ -84,12 +96,38 @@ def detail_app_view(request,pk):
     apps = App.objects.all()
     app_select = App.objects.get(pk=pk)
     sections = Section.objects.filter(app=app_select)
+    company_name = MyCompany.objects.all()[:1].get()
+    current_user = request.user
+    try:
+        tasks = Task.objects.filter(Q(user=current_user) & Q(app=app_select))
+    except Task.DoesNotExist:
+        tasks = None
     context = {
         'apps': apps,
         'app_select': app_select,
-        'sections': sections
+        'sections': sections,
+        'company_name': company_name,
+        'tasks': tasks,
     }
     return render(request, 'app_detail.html', context)
+
+@login_required
+def tasks_app_view(request,pk):
+    apps = App.objects.all()
+    app_select = App.objects.get(pk=pk)
+    company_name = MyCompany.objects.all()[:1].get()
+    current_user = request.user
+    try:
+        tasks = Task.objects.filter(Q(user=current_user) & Q(app=app_select))
+    except Task.DoesNotExist:
+        tasks = None
+    context = {
+        'apps': apps,
+        'app_select': app_select,
+        'company_name': company_name,
+        'tasks': tasks,
+    }
+    return render(request, 'app_tasks.html', context)
 
 class AppListView(LoginRequiredMixin, View):
     def get(self, request):
@@ -97,10 +135,71 @@ class AppListView(LoginRequiredMixin, View):
         company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
         try:
-            tasks = Task.objects.get(user=current_user)
+            tasks = Task.objects.filter(user=current_user)
         except Task.DoesNotExist:
             tasks = None
         return render(request, "dashboard.html", {'apps': apps, 'user': current_user, 'tasks': tasks, 'company_name': company_name})
+
+class AppFormView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        apps = App.objects.all()
+        app_select = App.objects.get(pk=pk)
+        params = ParamsInput.objects.filter(app_id=pk)
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        try:
+            tasks = Task.objects.filter(user=current_user)
+        except Task.DoesNotExist:
+            tasks = None
+        context = {
+            'apps': apps,
+            'user': current_user,
+            'tasks': tasks,
+            'company_name': company_name,
+            'app_select': app_select,
+            'params': params,
+        }
+        return render(request, "form_app.html", context)
+
+def create_task_view(request,pk):
+    if request.method == 'POST':
+        app_select = App.objects.get(pk=pk)
+        params_ids = ParamsInput.objects.filter(app_id=pk)
+        ids = [str(param_id.id) for param_id in params_ids]
+        command=  app_select.command
+        taskcode = app_select.name
+        current_user = request.user
+        for param_id in ids:
+            valor = request.POST[param_id]
+            param = ParamsInput.objects.get(pk=param_id)
+            if valor:
+                command += " " + param.option + " " + valor
+            else:
+                command += " " + param.option
+            if param.is_file_input:
+                file_input = valor
+            if param.is_file_output:
+                file_output = valor
+
+        new_task = Task.objects.create()
+        new_task.name = command
+        new_task.taskcode = taskcode
+        new_task.app = app_select
+        new_task.app_id = app_select
+        new_task.user = current_user
+        new_task.file_input = file_input
+        new_task.file_output = file_output
+        new_task.save()
+        apps = App.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        try:
+            tasks = Task.objects.filter(user=current_user)
+        except Task.DoesNotExist:
+            tasks = None
+        return render(request, "dashboard.html",
+                      {'apps': apps, 'user': current_user, 'tasks': tasks, 'company_name': company_name})
+
 
 class AppListViewAlt(ListView):
     model = App
@@ -108,37 +207,6 @@ class AppListViewAlt(ListView):
 class TaskListViewAlt(ListView):
     model = Task
 
-# def edit_user(request,pk):
-#     user = get_object_or_404(User, pk=pk)
-#     profile = get_object_or_404(Profile, pk=pk)
-#     if request.method == 'POST':
-#         register = EditForm(request.POST, prefix='register')
-#         usrprofile = ProfileForm(request.POST, prefix='profile')
-#         if register.is_valid() * usrprofile.is_valid():
-#             user.first_name = register.cleaned_data['first_name']
-#             user.last_name = register.cleaned_data['last_name']
-#             user.email = register.cleaned_data['email']
-#             profile.institution = usrprofile.cleaned_data['institution']
-#             user.save()
-#             profile.save()
-#             return HttpResponseRedirect('principal:list-apps-view')
-#         else:
-#             return render_to_response(request, 'edit_profile.html', context)
-#     else:
-#         userform = EditForm(initial={
-#             'first_name': user.first_name,
-#             'last_name': user.last_name,
-#             'email': user.email,
-#         })
-#         userprofileform = ProfileForm(initial={
-#             'institution': profile.institution,
-#         })
-#
-#         context = {
-#             'userform': userform,
-#             'userprofileform': userprofileform
-#         }
-#         return render(request, 'edit_profile.html',context)
 
 def change_password(request, pk):
     user = get_object_or_404(User, pk=pk)
@@ -157,19 +225,6 @@ def change_password(request, pk):
         'userprofileform': userprofileform
     }
     return render(request, 'edit_profile.html', context)
-# def edit_user(request,pk):
-#     user = get_object_or_404(User, pk=pk)
-#     if request.method == 'POST':
-#         form = UserForm(request.POST, instance=user)
-#         if form.is_valid():
-#             user.save()
-#     else:
-#         form = UserForm(instance=user)
-#
-#     context = {
-#         'form': form
-#     }
-#     return render(request, 'user_form_edit.html',context)
 
 class UserUpdate(UpdateView):
     model = User

@@ -146,8 +146,8 @@ LOGIN_REDIRECT_URL = reverse_lazy('principal:list-apps-view')
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 #Servidor de Correos
-# EMAIL_USE_TLS = True
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_HOST_USER = 'dexposito1993@gmail.com'
-# EMAIL_HOST_PASSWORD = ''
-# EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'daniel.tfg.cabd@gmail.com'
+EMAIL_HOST_PASSWORD = '4dm1n1str4d0r'
+EMAIL_PORT = 587

@@ -3,44 +3,25 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
-from app.models import App, User, Profile
+from app.models import App, User, Profile, Task, ParamsInput
 
 
-# class UserForm(forms.Form):
-#     email = forms.CharField(label='Email',required=True)
-#     password = forms.CharField(label='Password', required=True)
-#     name = forms.CharField(required=True)
-#     surname = forms.CharField(required=True)
-
-# class UserForm(forms.ModelForm):
+# class ParamsInputForm(forms.Form):
 #     class Meta:
-#         model = User
+#         model = ParamsInput
 #         exclude = ()
 #
 #     def __init__(self, *args, **kwargs):
-#         super(UserForm, self).__init__(*args, **kwargs)
+#         super(ParamsInput, self).__init__(*args, **kwargs)
 #         self.helper = FormHelper()
 #         self.helper.form_id='user-form'
-#
-#     def clean_name(self):
-#         email = self.cleaned_data['email']
-#         if email == '':
-#             raise ValidationError("")
-#         return email
-#
-#     def clean(self):
-#         cleaned_data = super(UserForm, self).clean()
-#         name = self.cleaned_data.get('name')
+
 
 class LoginForm(forms.ModelForm):
 
     class Meta:
         model = User
         fields = ['username', 'password']
-        # widgets = {
-        #     'password': forms.PasswordInput(attrs={'class': 'form-control','placeholder': 'Password'}),
-        #     'username': forms.EmailInput(attrs={'class': 'form-control','placeholder': 'Email'}),
-        # }
 
         def clean(self):
             username = self.cleaned_data.get('username')
@@ -66,7 +47,7 @@ class RegisterForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control','placeholder': 'Email'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control','placeholder': 'First Name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Last Name'}),
-            'username': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Username'}),
+            'username': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Username', 'readonly':'readonly'}),
         }
 
 class EditForm(forms.ModelForm):
@@ -86,4 +67,14 @@ class ProfileForm(forms.ModelForm):
         widgets = {
             'institution': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Institution'}),
         }
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['name','taskcode','state','file_input','file_output','app']
+
+        def __init__(self, *args, **kwargs):
+            super(ParamsInput, self).__init__(*args, **kwargs)
+                # self.helper = FormHelper()
+                # self.helper.form_id='user-form'
 
