@@ -28,27 +28,35 @@ def create_user_view(request):
     if request.method == 'POST':
         register = RegisterForm(request.POST, prefix='register')
         usrprofile = ProfileForm(request.POST, prefix='profile')
-        if register.is_valid() and usrprofile.is_valid():
-            user = register.save()
-            user.set_password(register.cleaned_data['password'])
-            user.is_active = False
-            user.save()
-            usrprof = usrprofile.save(commit=False)
-            usrprof.user = user
-            usrprof.subscribed = '1'
-            usrprof.save()
-            company_name = MyCompany.objects.all()[:1].get()
-            asunto = "Account New "+ user.email
-            mensaje = "The user with email: "+ user.email+ "is trying to login, you have to active this account through the admin panel"
-            mail = EmailMessage(asunto, mensaje, to=['daniel.tfg.cabd@gmail.com'])
-            mail.send()
-            return redirect('login')
-        else:
-            userform = RegisterForm(prefix='register')
-            userprofileform = ProfileForm(prefix='profile')
+        user = User.objects.get(email=register.cleaned_data['email'])
+        if user:
+            userform = RegisterForm(request.POST, prefix='register')
+            userprofileform = ProfileForm(request.POST, prefix='profile')
             company_name = MyCompany.objects.all()[:1].get()
             return render(request, 'register.html',
-                          {'company_name': company_name, 'userform': userform, 'userprofileform': userprofileform})
+                          {'company_name': company_name, 'userform': userform, 'userprofileform': userprofileform, 'email_exist': True})
+        else:
+            if register.is_valid() and usrprofile.is_valid():
+                user = register.save()
+                user.set_password(register.cleaned_data['password'])
+                user.is_active = False
+                user.save()
+                usrprof = usrprofile.save(commit=False)
+                usrprof.user = user
+                usrprof.subscribed = '1'
+                usrprof.save()
+                company_name = MyCompany.objects.all()[:1].get()
+                asunto = "Account New "+ user.email
+                mensaje = "The user with email: "+ user.email+ "is trying to login, you have to active this account through the admin panel"
+                mail = EmailMessage(asunto, mensaje, to=['daniel.tfg.cabd@gmail.com'])
+                mail.send()
+                return redirect('login')
+            else:
+                userform = RegisterForm(prefix='register')
+                userprofileform = ProfileForm(prefix='profile')
+                company_name = MyCompany.objects.all()[:1].get()
+                return render(request, 'register.html',
+                              {'company_name': company_name, 'userform': userform, 'userprofileform': userprofileform})
     else:
         userform = RegisterForm(prefix='register')
         userprofileform = ProfileForm(prefix='profile')

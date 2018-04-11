@@ -114,6 +114,14 @@
                                                     {{ userform.email.errors }}
                                                     <label>Email: </label>
                                                     {{ userform.email }}
+                                                    {% if email_exist %}
+                                                    <div id="error_email_exist">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error!</strong> Email already exists
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
                                                     <div id="error_email_required" style="display:none;">
                                                         <br/>
                                                         <div class="alert alert-danger">
