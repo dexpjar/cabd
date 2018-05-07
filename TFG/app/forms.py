@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
-from app.models import App, User, Profile, Task, ParamsInput
+from app.models import App, User, Profile, Task, ParamsInput, ImageSlideshow, MyCompany
 
 
 # class ParamsInputForm(forms.Form):
@@ -50,6 +50,20 @@ class RegisterForm(forms.ModelForm):
             'username': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Username', 'readonly':'readonly'}),
         }
 
+class UserForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ['email', 'first_name', 'last_name', 'username', 'is_superuser', 'is_active']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control','placeholder': 'Email'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control','placeholder': 'First Name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Last Name'}),
+            'username': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Username'}),
+            'is_superuser': forms.CheckboxInput(),
+            'is_active': forms.CheckboxInput(),
+        }
+
 class EditForm(forms.ModelForm):
     class Meta:
         model = User
@@ -68,6 +82,32 @@ class ProfileForm(forms.ModelForm):
             'institution': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Institution'}),
         }
 
+class AppForm(forms.ModelForm):
+    class Meta:
+        model = App
+        fields = ['taskcode','name','citation', 'image','command','description']
+        widgets = {
+            'taskcode': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Taskcode'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}),
+            'citation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Citation'}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+            'command': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Command'}),
+            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+        }
+
+class MyCompanyForm(forms.ModelForm):
+    class Meta:
+        model = MyCompany
+        fields = ['logo','name','address', 'phone','email','citations']
+        widgets = {
+            'logo': forms.FileInput(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Name'}),
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Address'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
+            'citations': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Citations'}),
+        }
+
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
@@ -75,6 +115,9 @@ class TaskForm(forms.ModelForm):
 
         def __init__(self, *args, **kwargs):
             super(ParamsInput, self).__init__(*args, **kwargs)
-                # self.helper = FormHelper()
-                # self.helper.form_id='user-form'
+
+class ImageSlideshowForm(forms.ModelForm):
+    class Meta:
+        model = ImageSlideshow
+        fields = ['image']
 

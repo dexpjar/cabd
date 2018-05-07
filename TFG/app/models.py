@@ -2,22 +2,55 @@
 from __future__ import unicode_literals
 
 import datetime
+
+import os
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.dispatch import receiver
 from django.utils import six
 
 # Create your models here.
 
+
 def image_upload_location(instance, filename):
-    return 'app/%s.png' % (instance.id)
+    return 'app/%s' % (filename)
+
+def image_index_upload_location(instance, filename):
+    return 'index/%s' % (filename)
+
 
 class ImageSlideshow(models.Model):
-    image = models.ImageField('Image', upload_to=image_upload_location)
+    image = models.ImageField('Image', upload_to=image_index_upload_location)
     title = models.CharField('Title', max_length=100)
 
+    def delete(self, *args, **kwargs):
+        storage, path = self.iamge.storage, self.image.path
+        super(ImageSlideshow, self).delete(*args, **kwargs)
+        storage.delete(path)
+
+# @receiver(models.signals.post_delete,sender=ImageSlideshow)
+# def auto_delete_file_on_delete(sender,instance, **kwargs):
+#     if instance.image:
+#         if os.path.isfile(instance.image.path):
+#             os.remove(instance.image.path)
+#
+# @receiver(models.signals.pre_delete,sender=ImageSlideshow)
+# def auto_delete_file_on_delete(sender,instance, **kwargs):
+#     if not instance.pk:
+#         return False
+#     try:
+#         old_file = sender.objects.get(pk=instance.pk).image
+#     except sender.DoesNotExist:
+#
+#         return False
+#     new_file = instance.image
+#     if not old_file == new_file:
+#         if os.path.isfile(old_file.path):
+#             os.remove(old_file.path)
+
 class MyCompany(models.Model):
-    logo = models.ImageField('Logo', blank=True, null=True, upload_to=image_upload_location)
+    logo = models.ImageField('Logo', blank=True, null=True, upload_to=image_index_upload_location)
     name = models.CharField('Name', max_length=100)
     # description = models.CharField('Description', max_length=100)
     address = models.TextField('Address', blank=True)

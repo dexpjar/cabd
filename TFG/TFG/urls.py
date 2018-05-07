@@ -19,11 +19,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
-from app.views import Login
+from app.views import Login, AdminLogin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^principal/', include('app.urls', namespace='principal')),
     url(r'^$', Login.as_view(), name='login'),
+    url(r'^paneladmin/$', AdminLogin.as_view(), name='admin-login'),
     url(r'^logout/$', auth_views.logout,{'next_page': '/'}, name='logout'),
+    url(r'^logout_admin/$', auth_views.logout,{'next_page': '/paneladmin'}, name='logout-admin'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

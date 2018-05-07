@@ -1,0 +1,21 @@
+body, html {
+    height: 100%;
+    margin: 0;
+}
+body{
+    background: url("/media/index/wallpaper-admin.jpg");
+    height: 100%;
+	background-color: #444;
+	background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.vertical-offset-100{
+    padding-top:100px;
+}
+
+.title{
+    color: white;
+    text-align: center;
+}

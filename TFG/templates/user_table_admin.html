@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>GGAFE Panel Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}"/>
+
+    <!-- Custom fonts for this template-->
+    <link href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+
+    <link href="{% static 'css/admin/main.css' %}" rel="stylesheet">
+    <link href="{% static 'css/admin/font-style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/admin/flexslider.css' %}" rel="stylesheet">
+    <link href="{% static 'css/admin/table.css' %}" rel="stylesheet">
+    <link href="{% static 'css/admin/register.css' %}" rel="stylesheet">
+        <!-- Footer -->
+    <link href="{% static 'css/footer-distributed-with-address-and-phones.css' %}" rel="stylesheet">
+
+    <script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
+
+
+    <!-- NOTY JAVASCRIPT -->
+    <script type="text/javascript" src="{% static 'js/admin/noty/jquery.noty.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/admin/noty/layouts/top.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/admin/noty/layouts/topLeft.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/admin/noty/layouts/topRight.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/admin/noty/layouts/topCenter.js' %}"></script>
+
+    <script src="{% static 'vendor/datatables/jquery.dataTables.js' %}"></script>
+    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.js' %}"></script>
+
+    <!-- <script type="text/javascript" src="assets/js/dash-noty.js"></script> This is a Noty bubble when you init the theme-->
+    <script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="{% static 'js/admin/jquery.flexslider.js' %}" type="text/javascript"></script>
+
+    <script type="text/javascript" src="{% static 'js/admin/admin.js' %}"></script>
+
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+      }
+
+    </style>
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+
+    <!-- Google Fonts call. Font Used Open Sans & Raleway -->
+    <link href="http://fonts.googleapis.com/css?family=Raleway:400,300" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+
+    <script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#btn-blog-next").click(function () {
+            $('#blogCarousel').carousel('next')
+        });
+        $("#btn-blog-prev").click(function () {
+            $('#blogCarousel').carousel('prev')
+        });
+
+        $("#btn-client-next").click(function () {
+            $('#clientCarousel').carousel('next')
+        });
+        $("#btn-client-prev").click(function () {
+            $('#clientCarousel').carousel('prev')
+        });
+
+    });
+
+    $(window).load(function () {
+
+        $('.flexslider').flexslider({
+            animation: "slide",
+            slideshow: true,
+            start: function (slider) {
+                $('body').removeClass('loading');
+            }
+        });
+    });
+
+
+    </script>
+
+    <script type="text/javascript" src="{% static 'js/admin/datatables/jquery.dataTables.js' %}"></script>
+  			<script type="text/javascript" charset="utf-8">
+  			    $(document).ready(function () {
+  			        $('#dt1').dataTable();
+  			    });
+	</script>
+</head>
+<body>
+
+<!-- NAVIGATION MENU -->
+
+<!-- NAVIGATION MENU -->
+
+<div class="navbar-nav navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{% url 'principal:admin-view' %}"><img src="images/logo30.png" alt=""> GGAFE Panel Admin</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="{% url 'principal:admin-view' %}"><i class="icon-home icon-white"></i> Home</a></li>
+                <li class="active"><a href="{% url 'principal:list-user-admin-view' %}"><i class="icon-th icon-white"></i> User</a></li>
+                <li><a href="{% url 'principal:list-app-admin-view' %}"><i class="icon-lock icon-white"></i> App</a></li>
+                <li><a href="{% url 'principal:list-mycompany-admin-view' %}"><i class="icon-user icon-white"></i> General Information</a></li>
+                <li><a href="{% url 'principal:list-task-admin-view' %}"><i class="icon-user icon-white"></i> Task</a></li>
+                <li><a href="{% url 'principal:list-image-admin-view' %}"><i class="icon-user icon-white"></i> Image Slide Show</a></li>
+                <li><a href="{% url 'principal:list-param-admin-view' %}"><i class="icon-user icon-white"></i> Param Input</a></li>
+                <li><a href="{% url 'principal:list-section-admin-view' %}"><i class="icon-user icon-white"></i> Section</a></li>
+                <li><a href="{% url 'logout-admin' %}"><i class="fa fa-sign-out"></i> Log Out</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</div>
+
+<div class="container">
+    {% if user_deleted %}
+    <div id="div_user_deleted">
+        <br/>
+        <div class="alert alert-success">
+            <strong>User deleted</strong>
+        </div>
+    </div>
+    {% endif %}
+    <br />
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12  table-info">
+        <div class="col-lg-12">
+            <a id="a_button_new_user" href="{% url 'principal:new-user-admin-view' %}"><i class="fa fa-plus"></i> New User</a>
+            <br /><br />
+        </div>
+        <div class="col-lg-8">
+            <table class="display" id="dt1">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Active</th>
+                        <th>Superuser</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if users %}
+                    {% for user in users %}
+                    <tr class="tr_table_user">
+                        <td class="table_email">{{ user.email }}</td>
+                        <td class="table_first_name">{{ user.first_name }}</td>
+                        <td class="table_last_name">{{ user.last_name }}</td>
+                        <td class="table_is_active"><input type="checkbox" name="active" {% if user.is_active %}checked{% endif %} onclick="return false;" /></td>
+                        <td class="table_is_superuser"><input type="checkbox" name="active" {% if user.is_superuser %}checked{% endif %} onclick="return false;" /></td>
+                        <input type="hidden" name="id" class="id_user" value="{{ user.pk }}"/>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align:center;">Not Result Found</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+          </table>
+		</div><!--/span12 -->
+        <div class="col-lg-4">
+            <div class="register-info-wraper table-register-info">
+        	    <div id="register-info">
+        		    <div class="cont2">
+        					<!--<div class="thumbnail">-->
+								<!--<img src="{% static 'img/avatar.png' %}" alt="Marcel Newman" class="img-circle avatar">-->
+							<!--</div>&lt;!&ndash; /thumbnail &ndash;&gt;-->
+					    <h2 id="name_user"></h2>
+                    </div>
+                    <br />
+        			<div class="row">
+        			    <div class="col-lg-12">
+        				    <div class="cont3">
+                                <p><ok>Email:</ok> <span id="email_user"></span></p>
+                                <p><ok>Active:</ok> <span id="active_user"></span></p>
+                                <p><ok>Superuser:</ok> <span id="superuser_user"></span></p>
+                            </div>
+                        </div>
+                    </div><!-- /inner row -->
+                    <hr>
+					<div class="cont2">
+                        <h2>Choose Your Option</h2>
+                    </div>
+					<br>
+					    <div class="info-user2">
+                            <a href="" id="link_deleted_user"><span aria-hidden="true" class="li_trash fs1"></span></a>
+							<a href="" id="link_edit_user"><span aria-hidden="true" class="li_pen fs1"></span></a>
+                        </div>
+                    </div>
+        		</div>
+        	</div>
+        </div>
+
+    </div><!-- /row -->
+    <br /><br />
+</div> <!-- /container -->
+<div class="footer-distributed">
+    <div class="footer-left">
+
+        <h3>Gene & Genome <span>Annotation For Everybody</span></h3>
+
+        <p class="footer-links">
+            <a href="#">Citations</a>
+            ·
+            <a href="#">Help</a>
+            ·
+            <a href="#">About</a>
+            ·
+            <a href="#">Contact</a>
+        </p>
+
+        <p class="footer-company-name">CABD &copy; 2018</p>
+    </div>
+
+    <div class="footer-center">
+
+        <div>
+            <i class="fa fa-map-marker"></i>
+            <span style="color:white;">{{ company_name.address }}, Seville, Spain</span>
+        </div>
+
+        <div>
+            <i class="fa fa-phone"></i>
+            <p>{{ company_name.phone }}</p>
+        </div>
+
+        <div>
+            <i class="fa fa-envelope"></i>
+            <p>{{ company_name.email }}</p>
+        </div>
+
+    </div>
+
+    <div class="footer-right">
+
+        <p class="footer-company-about">
+            <span>About the company</span>
+            {{ company_name.description }}
+        </p>
+
+        <div class="footer-icons">
+
+            <a href="#"><i class="fa fa-facebook"></i></a>
+            <a href="#"><i class="fa fa-twitter"></i></a>
+            <a href="#"><i class="fa fa-linkedin"></i></a>
+            <a href="#"><i class="fa fa-github"></i></a>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
