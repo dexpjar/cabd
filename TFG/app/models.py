@@ -121,6 +121,34 @@ class ParamsInput(models.Model):
     is_file_output = models.BooleanField('Is File Output')
     info = models.TextField('Info')
 
+
+class ParamsInputFile(models.Model):
+    name = models.CharField('Name', max_length=100)
+    value = models.CharField('Value', max_length=100)
+    type = models.CharField('Type', max_length=20)
+    allowed_format = models.CharField('Allowed Format', max_length=100)
+    app = models.ForeignKey(App, related_name="param_file_id")
+    option = models.CharField('Option', max_length=10)
+    info = models.TextField('Info')
+
+class ParamsInputText(models.Model):
+    name = models.CharField('Name', max_length=100)
+    value = models.CharField('Value', max_length=100)
+    app = models.ForeignKey(App, related_name="param_text_id")
+    option = models.CharField('Option', max_length=10)
+    info = models.TextField('Info')
+
+class ParamInputOption(models.Model):
+    value = models.CharField('Value', max_length=100)
+
+class ParamsInputSelect(models.Model):
+    name = models.CharField('Name', max_length=100)
+    value = models.ForeignKey(ParamInputOption, related_name="option_id")
+    app = models.ForeignKey(App, related_name="param_select_id")
+    option = models.CharField('Option', max_length=10)
+    info = models.TextField('Info')
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     institution = models.CharField('Institution',max_length=100, blank=True, null=True)
