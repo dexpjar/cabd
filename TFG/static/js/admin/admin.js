@@ -78,6 +78,10 @@ $(document).ready(function () {
         $("#app_task")[0].innerHTML = $(this).find(".table_app")[0].innerHTML;
         $("#user_task")[0].innerHTML = $(this).find(".table_user")[0].innerHTML;
         $("#taskcode_task")[0].innerHTML = $(this).find(".table_taskcode")[0].innerHTML;
+        var id = $(this).find(".id_task").val();
+        $("#link_deleted_task").attr("href","/principal/delete_task_admin_view/"+id);
+        $("#link_edit_task").attr("href","/principal/edit_task_admin_view/"+id);
+        $("#div_task_deleted").hide();
         $(".register-info-wraper").show();
         $('html, body').animate({
             scrollTop: $("#navbar-header").offset().top
@@ -100,6 +104,10 @@ $(document).ready(function () {
         $("#option_param")[0].innerHTML = $(this).find(".table_option")[0].innerHTML;
         $("#input_param")[0].innerHTML = $(this).find(".table_input")[0].innerHTML;
         $("#output_param")[0].innerHTML = $(this).find(".table_output")[0].innerHTML;
+        var id = $(this).find(".id_param").val();
+        $("#link_deleted_param").attr("href","/principal/delete_param_admin_view/"+id);
+        $("#link_edit_param").attr("href","/principal/edit_param_admin_view/"+id);
+        $("#div_param_deleted").hide();
         $(".register-info-wraper").show();
     });
 
@@ -108,6 +116,10 @@ $(document).ready(function () {
         $("#app_section")[0].innerHTML = $(this).find(".table_app")[0].innerHTML;
         $("#description_section")[0].innerHTML = $(this).find(".table_description")[0].innerHTML;
         $(".register-info-wraper").show();
+        var id = $(this).find(".id_section").val();
+        $("#link_deleted_section").attr("href","/principal/delete_section_admin_view/"+id);
+        $("#link_edit_section").attr("href","/principal/edit_section_admin_view/"+id);
+        $("#div_section_deleted").hide();
     });
 
     $(".link_deleted_image").click(function(){

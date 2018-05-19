@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
-from app.models import App, User, Profile, Task, ParamsInput, ImageSlideshow, MyCompany
+from app.models import App, User, Profile, Task, ParamsInput, ImageSlideshow, MyCompany, Section
 
 
 # class ParamsInputForm(forms.Form):
@@ -116,8 +116,50 @@ class TaskForm(forms.ModelForm):
         def __init__(self, *args, **kwargs):
             super(ParamsInput, self).__init__(*args, **kwargs)
 
+class TaskAdminForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['name','state','file_input','file_output','app','user','taskcode']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}),
+            'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'State'}),
+            'file_input': forms.FileInput(attrs={'class': 'form-control'}),
+            'file_output': forms.FileInput(attrs={'class': 'form-control'}),
+            'taskcode': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Taskcode'}),
+        }
+
+
 class ImageSlideshowForm(forms.ModelForm):
     class Meta:
         model = ImageSlideshow
         fields = ['image']
+
+
+class ParamForm(forms.ModelForm):
+    LIST_INPUT = (('text', 'Text'), ('file', 'File'), ('read', 'Read'))
+    state = forms.ChoiceField(choices=LIST_INPUT)
+    class Meta:
+        model = ParamsInput
+        fields = ['name','option','value','allowed_format','is_required','is_file_input','is_file_output','app','state','info']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}),
+            'option': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Option'}),
+            'value': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Value'}),
+            'allowed_format': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Allowed Format'}),
+            'is_required': forms.CheckboxInput(),
+            'is_file_input': forms.CheckboxInput(),
+            'is_file_output': forms.CheckboxInput(),
+            'info': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Info'}),
+        }
+
+class SectionForm(forms.ModelForm):
+    class Meta:
+        model = Section
+        fields = ['title','description','app']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control','placeholder': 'Title'}),
+            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Description'}),
+        }
 

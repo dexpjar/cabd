@@ -19,6 +19,11 @@ def image_upload_location(instance, filename):
 def image_index_upload_location(instance, filename):
     return 'index/%s' % (filename)
 
+def file_task_input_upload_location(instance, filename):
+    return 'files/input/%s' % (filename)
+
+def file_task_output_upload_location(instance, filename):
+    return 'files/output/%s' % (filename)
 
 class ImageSlideshow(models.Model):
     image = models.ImageField('Image', upload_to=image_index_upload_location)
@@ -94,8 +99,8 @@ class Task(models.Model):
     app = models.ForeignKey(App, blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True)
     creation_date = models.DateTimeField('Creation Date',auto_now_add=True)
-    file_input = models.FileField('File Input', upload_to='files/input/',blank=False)
-    file_output = models.FileField('File Output', upload_to='files/output/', blank=True)
+    file_input = models.FileField('File Input', upload_to=file_task_input_upload_location,blank=False)
+    file_output = models.FileField('File Output', upload_to=file_task_output_upload_location, blank=True)
 
 class ParamsInput(models.Model):
     LIST_INPUT = (

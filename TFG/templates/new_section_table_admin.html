@@ -120,8 +120,8 @@
                 <li><a href="{% url 'principal:list-mycompany-admin-view' %}"><i class="icon-user icon-white"></i> General Information</a></li>
                 <li><a href="{% url 'principal:list-task-admin-view' %}"><i class="icon-user icon-white"></i> Task</a></li>
                 <li><a href="{% url 'principal:list-image-admin-view' %}"><i class="icon-user icon-white"></i> Image Slide Show</a></li>
-                <li class="active"><a href="{% url 'principal:list-param-admin-view' %}"><i class="icon-user icon-white"></i> Param Input</a></li>
-                <li><a href="{% url 'principal:list-section-admin-view' %}"><i class="icon-user icon-white"></i> Section</a></li>
+                <li><a href="{% url 'principal:list-param-admin-view' %}"><i class="icon-user icon-white"></i> Param Input</a></li>
+                <li class="active"><a href="{% url 'principal:list-section-admin-view' %}"><i class="icon-user icon-white"></i> Section</a></li>
                 <li><a href="{% url 'logout-admin' %}"><i class="fa fa-sign-out"></i> Log Out</a></li>
             </ul>
         </div><!--/.nav-collapse -->
@@ -129,96 +129,82 @@
 </div>
 
 <div class="container">
-    {% if param_deleted %}
-    <div id="div_param_deleted">
-        <br/>
-        <div class="alert alert-success">
-            <strong>Param deleted</strong>
-        </div>
-    </div>
-    {% endif %}
     <br />
     <div class="row">
         <div class="col-md-12 col-sm-12 col-xs-12  table-info">
-            <div class="col-lg-12">
-                <a id="a_button_new_param" href="{% url 'principal:new-param-admin-view' %}"><i class="fa fa-plus"></i> New Param Input</a>
-                <br /><br />
-            </div>
-            <div class="col-lg-3"></div>
-            <div class="col-lg-6">
-                <div class="register-info-wraper table-register-info">
-                    <div id="register-info">
-                        <h2 id="name_param"></h2>
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8">
+                {% if new_section %}
+                <form action="{% url 'principal:new-section-admin-view' %}" method="post" enctype="multipart/form-data">
+                    <div class="text-center">
+                        <h2 id="h2-register">New Section</h2>
                     </div>
-                    <br />
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="cont3">
-                                <p><ok>State:</ok> <span id="state_param"></span></p>
-                                <p><ok>Allowed Format:</ok> <span id="allowedformat_param"></span></p>
-                                <p><ok>App:</ok> <span id="app_param"></span></p>
-                                <p><ok>Required:</ok> <span id="required_param"></span></p>
-                                <p><ok>Value:</ok> <span id="value_param"></span></p>
-                                <p><ok>Info:</ok> <span id="info_param"></span></p>
-                                <p><ok>Option:</ok> <span id="option_param"></span></p>
-                                <p><ok>Is File Input:</ok> <span id="input_param"></span></p>
-                                <p><ok>Is File Output:</ok> <span id="output_param"></span></p>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-12">
+                                {{ sectionform.title.errors }}
+                                <label>Title: </label>
+                                {{ sectionform.title }}
                             </div>
                         </div>
-                    </div><!-- /inner row -->
-                    <hr>
-                    <div class="cont2">
-                        <h2>Choose Your Option</h2>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ sectionform.description.errors }}
+                                <label>Description: </label>
+                                {{ sectionform.description }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ sectionform.app.errors }}
+                                <label>App: </label>
+                                {{ sectionform.app }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            {% csrf_token %}
+                            <br/>
+                            <input class="btn btn-primary btn-block" type="submit" value="Save Changes">
+                        </div>
                     </div>
-                    <br />
-                    <div class="info-user2">
-                        <a href="" id="link_deleted_param"><span aria-hidden="true" class="li_trash fs1"></span></a>
-                        <a href="" id="link_edit_param"><span aria-hidden="true" class="li_pen fs1"></span></a>
+                </form>
+                {% else %}
+                <form action="{% url 'principal:edit-section-admin-view' id %}" method="post" enctype="multipart/form-data">
+                    <div class="text-center">
+                        <h2>Edit Section</h2>
                     </div>
-                </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-12">
+                                {{ sectionform.title.errors }}
+                                <label>Title: </label>
+                                {{ sectionform.title }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ sectionform.description.errors }}
+                                <label>Description: </label>
+                                {{ sectionform.description }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ sectionform.app.errors }}
+                                <label>App: </label>
+                                {{ sectionform.app }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            {% csrf_token %}
+                            <br/>
+                            <input class="btn btn-primary btn-block" type="submit" value="Save Changes">
+                        </div>
+                    </div>
+                </form>
+                {% endif %}
             </div>
-            <div class="col-lg-3"></div>
-            <div class="col-lg-12">
-                <table class="display" id="dt1">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>State</th>
-                            <th>Allowed Format</th>
-                            <th>App</th>
-                            <th>Required</th>
-                            <th>Value</th>
-                            <th>Info</th>
-                            <th>Option</th>
-                            <th>Is File Input</th>
-                            <th>Is File Output</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if params %}
-                        {% for param in params %}
-                        <tr class="tr_table_param">
-                            <td class="table_name">{{ param.name }}</td>
-                            <td class="table_state">{{ param.state }}</td>
-                            <td class="table_allowedformat">{{ param.allowed_format }}</td>
-                            <td class="table_app">{{ param.app.name }}</td>
-                            <td class="table_required"><input type="checkbox" name="is_required" {% if param.is_required %}checked{% endif %} onclick="return false;" /></td>
-                            <td class="table_value">{{ param.value }}</td>
-                            <td class="table_info">{{ param.info }}</td>
-                            <td class="table_option">{{ param.option }}</td>
-                            <td class="table_input"><input type="checkbox" name="is_file_input" {% if param.is_file_input %}checked{% endif %} onclick="return false;" /></td>
-                            <td class="table_output"><input type="checkbox" name="is_file_output" {% if param.is_file_output %}checked{% endif %} onclick="return false;" /></td>
-                            <input type="hidden" name="id" class="id_param" value="{{ param.pk }}"/>
-                        </tr>
-                        {% endfor %}
-                        {% else %}
-                        <tr>
-                            <td colspan="4" style="text-align:center;">Not Result Found</td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-              </table>
-            </div><!--/span12 -->
+            <div class="col-lg-2"></div>
         </div>
     </div><!-- /row -->
     <br /><br />

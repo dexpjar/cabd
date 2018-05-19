@@ -932,7 +932,7 @@ div.box {
     width: 300px;
 }
 
-#a_button_new_image, #a_button_new_user, #a_button_new_app{
+#a_button_new_image, #a_button_new_user, #a_button_new_app, #a_button_new_section, #a_button_new_task, #a_button_new_param{
     background-color: #01B2F8;
     color: white;
     padding:14px 25px;
@@ -942,7 +942,7 @@ div.box {
     border-radius: 4px;
 }
 
-#a_button_new_image:hover, #a_button_new_user:hover, #a_button_new_app:hover {
+#a_button_new_image:hover, #a_button_new_user:hover, #a_button_new_app:hover, a_button_new_section:hover, #a_button_new_task:hover, #a_button_new_param:hover {
     background-color: #016d98; /* Green */
     font-weight: bold;
 }

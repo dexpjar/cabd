@@ -12,7 +12,10 @@ from app.views import detail_app_view, AppListView, create_user_view, \
     admin_view, UserAdminListView, AppAdminListView, MyCompanyAdminListView, TaskAdminListView, \
     ImageSlideShowAdminListView, ParamInputAdminListView, SectionAdminListView, NewImageSlideShowAdminListView, \
     DeleteImageSlideShowAdminListView, DeleteUserAdminListView, NewUserAdminListView, EditUserAdminListView, \
-    NewAppAdminListView, DeleteAppAdminListView, EditAppAdminListView, EditMyCompanyAdminListView
+    NewAppAdminListView, DeleteAppAdminListView, EditAppAdminListView, EditMyCompanyAdminListView, \
+    NewSectionAdminListView, DeleteSectionAdminListView, EditSectionAdminListView, EditTaskAdminListView, \
+    DeleteTaskAdminListView, NewTaskAdminListView, NewParamInputAdminListView, DeleteParamInputAdminListView, \
+    EditParamInputAdminListView
 
 urlpatterns = [
     url(r'^create_user/$',create_user_view, name = 'create-user-view'),
@@ -23,7 +26,7 @@ urlpatterns = [
     url(r'^user/edit/(?P<pk>\d+)$', login_required(UserUpdate.as_view()), name='edit-user-view'),
     url(r'^user/password/(?P<pk>\d+)$', change_password, name='change-password'),
     url(r'^contact/$', contact_view, name='contact-view'),
-    url(r'^create_task/(?P<pk>\d+)$',login_required(create_task_view.as_view()), name = 'create-task-view'),
+    url(r'^create_task/(?P<pk>\d+)$',login_required(create_task_view), name = 'create-task-view'),
     url(r'^admin_view/$', login_required(admin_view), name='admin-view'),
     # Admin User
     url(r'^user_admin_view/$', login_required(UserAdminListView.as_view()), name='list-user-admin-view'),
@@ -43,6 +46,9 @@ urlpatterns = [
 
     # Admin Task
     url(r'^task_admin_view/$', login_required(TaskAdminListView.as_view()), name='list-task-admin-view'),
+    url(r'^new_task_admin_view/$', login_required(NewTaskAdminListView.as_view()), name='new-task-admin-view'),
+    url(r'^delete_task_admin_view/(?P<pk>\d+)$', login_required(DeleteTaskAdminListView.as_view()), name='delete-task-admin-view'),
+    url(r'^edit_task_admin_view/(?P<pk>\d+)$', login_required(EditTaskAdminListView.as_view()), name='edit-task-admin-view'),
 
     # Admin ImageSlideShow
     url(r'^image_admin_view/$', login_required(ImageSlideShowAdminListView.as_view()), name='list-image-admin-view'),
@@ -51,8 +57,13 @@ urlpatterns = [
 
     # Admin Param Input
     url(r'^param_admin_view/$', login_required(ParamInputAdminListView.as_view()), name='list-param-admin-view'),
+    url(r'^new_param_admin_view/$', login_required(NewParamInputAdminListView.as_view()), name='new-param-admin-view'),
+    url(r'^delete_param_admin_view/(?P<pk>\d+)$', login_required(DeleteParamInputAdminListView.as_view()), name='delete-param-admin-view'),
+    url(r'^edit_param_admin_view/(?P<pk>\d+)$', login_required(EditParamInputAdminListView.as_view()), name='edit-param-admin-view'),
 
     # Admin Section
     url(r'^section_admin_view/$', login_required(SectionAdminListView.as_view()), name='list-section-admin-view'),
-
+    url(r'^new_section_admin_view/$', login_required(NewSectionAdminListView.as_view()), name='new-section-admin-view'),
+    url(r'^delete_section_admin_view/(?P<pk>\d+)$', login_required(DeleteSectionAdminListView.as_view()), name='delete-section-admin-view'),
+    url(r'^edit_section_admin_view/(?P<pk>\d+)$', login_required(EditSectionAdminListView.as_view()), name='edit-section-admin-view'),
 ]

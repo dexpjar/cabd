@@ -19,7 +19,7 @@ from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, FormView
 
 from app.forms import RegisterForm, ProfileForm, EditForm, LoginForm, TaskForm, ImageSlideshowForm, UserForm, AppForm, \
-    MyCompanyForm
+    MyCompanyForm, SectionForm, TaskAdminForm, ParamForm
 from app.models import App, User, Profile, Task, Section, MyCompany, ImageSlideshow, ParamsInput
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.urlresolvers import reverse_lazy
@@ -549,7 +549,9 @@ class EditMyCompanyAdminListView(UpdateView):
                           {'mycompanyform': mycompanyform, 'user': current_user,
                            'company_name': company_name})
 
+# Backend Admin Task
 
+# List Tasks
 class TaskAdminListView(LoginRequiredMixin, View):
     def get(self, request):
         tasks = Task.objects.all()
@@ -559,6 +561,80 @@ class TaskAdminListView(LoginRequiredMixin, View):
         return render(request, "task_table_admin.html",
                       {'tasks': tasks, 'user': current_user, 'company_name': company_name})
 
+# Create Task
+class NewTaskAdminListView(LoginRequiredMixin, View):
+    model = Task
+    template_name = 'new_task_table_admin.html'
+    form_class = TaskAdminForm
+    success_url = reverse_lazy('principal:list-task-admin-view')
+
+
+    def get(self, request):
+        taskform = self.form_class()
+        company_name = MyCompany.objects.all()[:1].get()
+        context = {
+            'taskform': taskform,
+            'company_name': company_name,
+            'new_task':'true'
+        }
+        return render(request, "new_task_table_admin.html", context)
+
+    def post(self, request, *args, **kwargs):
+        taskform = TaskAdminForm(request.POST, request.FILES)
+        if taskform.is_valid():
+            taskform.save()
+            return HttpResponseRedirect(self.success_url)
+        else:
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_task_table_admin.html",
+                          {'taskform': taskform, 'company_name': company_name,'new_task':'true'})
+
+# Edit Task
+class EditTaskAdminListView(UpdateView):
+    model = Task
+    template_name = 'new_task_table_admin.html'
+    form_class = TaskAdminForm
+    success_url = reverse_lazy('principal:list-task-admin-view')
+
+    def get_context_data(self, **kwargs):
+        context = super(EditTaskAdminListView, self).get_context_data(**kwargs)
+        pk = self.kwargs.get('pk', 0)
+        task = self.model.objects.get(id=pk)
+        if 'taskform' not in context:
+            context['taskform'] = self.form_class(instance=task)
+        context['id'] = pk
+        context['company_name'] = MyCompany.objects.all()[:1].get()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object
+        id_task = kwargs['pk']
+        task = self.model.objects.get(id=id_task)
+        taskform = self.form_class(request.POST, request.FILES, instance=task)
+        if taskform.is_valid():
+            taskform.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            current_user = request.user
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_task_table_admin.html",
+                          {'taskform': taskform, 'user': current_user,
+                           'company_name': company_name, 'id': id_task})
+
+# Delete Task
+class DeleteTaskAdminListView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        Task.objects.filter(pk=pk).delete()
+        tasks = Task.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        return render(request, "task_table_admin.html",
+                      {'tasks': tasks, 'user': current_user, 'company_name': company_name,'task_deleted':'true'})
+
+
+# Backend Admin ImageSlideShow
+
+# List ImageSlideShow
 class ImageSlideShowAdminListView(LoginRequiredMixin, View):
     def get(self, request):
         images = ImageSlideshow.objects.all()
@@ -606,6 +682,9 @@ class DeleteImageSlideShowAdminListView(LoginRequiredMixin, View):
                       {'images': images, 'user': current_user, 'company_name': company_name,'image_deleted': 'image_deleted'})
 
 
+# Backend Admin Param Input
+
+# List Param Input
 class ParamInputAdminListView(LoginRequiredMixin, View):
     def get(self, request):
         params = ParamsInput.objects.all()
@@ -614,6 +693,79 @@ class ParamInputAdminListView(LoginRequiredMixin, View):
         return render(request, "param_table_admin.html",
                       {'params': params, 'user': current_user, 'company_name': company_name})
 
+# Create Param Input
+class NewParamInputAdminListView(LoginRequiredMixin, View):
+    model = ParamsInput
+    template_name = 'new_param_table_admin.html'
+    form_class = ParamForm
+    success_url = reverse_lazy('principal:list-param-admin-view')
+
+
+    def get(self, request):
+        paramform = self.form_class()
+        company_name = MyCompany.objects.all()[:1].get()
+        context = {
+            'paramform': paramform,
+            'company_name': company_name,
+            'new_param':'true'
+        }
+        return render(request, "new_param_table_admin.html", context)
+
+    def post(self, request, *args, **kwargs):
+        paramform = ParamForm(request.POST)
+        if paramform.is_valid():
+            paramform.save()
+            return HttpResponseRedirect(self.success_url)
+        else:
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_param_table_admin.html",
+                          {'paramform': paramform, 'company_name': company_name,'new_param':'true'})
+
+# Edit Param Input
+class EditParamInputAdminListView(UpdateView):
+    model = ParamsInput
+    template_name = 'new_param_table_admin.html'
+    form_class = ParamForm
+    success_url = reverse_lazy('principal:list-param-admin-view')
+
+    def get_context_data(self, **kwargs):
+        context = super(EditParamInputAdminListView, self).get_context_data(**kwargs)
+        pk = self.kwargs.get('pk', 0)
+        param = self.model.objects.get(id=pk)
+        if 'paramform' not in context:
+            context['paramform'] = self.form_class(instance=param)
+        context['id'] = pk
+        context['company_name'] = MyCompany.objects.all()[:1].get()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object
+        id_param = kwargs['pk']
+        param = self.model.objects.get(id=id_param)
+        paramform = self.form_class(request.POST, instance=param)
+        if paramform.is_valid():
+            paramform.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            current_user = request.user
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_param_table_admin.html",
+                          {'paramform': paramform, 'user': current_user,
+                           'company_name': company_name, 'id': id_param})
+
+# Delete Param Input
+class DeleteParamInputAdminListView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        ParamsInput.objects.filter(pk=pk).delete()
+        params = ParamsInput.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        return render(request, "param_table_admin.html",
+                      {'params': params, 'user': current_user, 'company_name': company_name,'param_deleted':'true'})
+
+# Backend Admin Section
+
+# List Sections
 class SectionAdminListView(LoginRequiredMixin, View):
     def get(self, request):
         sections = Section.objects.all()
@@ -621,3 +773,73 @@ class SectionAdminListView(LoginRequiredMixin, View):
         current_user = request.user
         return render(request, "section_table_admin.html",
                       {'sections': sections, 'user': current_user, 'company_name': company_name})
+
+# Create Section
+class NewSectionAdminListView(LoginRequiredMixin, View):
+    model = Section
+    template_name = 'new_section_table_admin.html'
+    form_class = SectionForm
+    success_url = reverse_lazy('principal:list-section-admin-view')
+
+
+    def get(self, request):
+        sectionform = self.form_class()
+        company_name = MyCompany.objects.all()[:1].get()
+        context = {
+            'sectionform': sectionform,
+            'company_name': company_name,
+            'new_section':'true'
+        }
+        return render(request, "new_section_table_admin.html", context)
+
+    def post(self, request, *args, **kwargs):
+        sectionform = SectionForm(request.POST, request.FILES)
+        if sectionform.is_valid():
+            sectionform.save()
+            return HttpResponseRedirect(self.success_url)
+        else:
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_section_table_admin.html",
+                          {'sectionform': sectionform, 'company_name': company_name,'new_section':'true'})
+
+# Edit Section
+class EditSectionAdminListView(UpdateView):
+    model = Section
+    template_name = 'new_section_table_admin.html'
+    form_class = SectionForm
+    success_url = reverse_lazy('principal:list-section-admin-view')
+
+    def get_context_data(self, **kwargs):
+        context = super(EditSectionAdminListView, self).get_context_data(**kwargs)
+        pk = self.kwargs.get('pk', 0)
+        section = self.model.objects.get(id=pk)
+        if 'sectionform' not in context:
+            context['sectionform'] = self.form_class(instance=section)
+        context['id'] = pk
+        context['company_name'] = MyCompany.objects.all()[:1].get()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object
+        id_section = kwargs['pk']
+        section = self.model.objects.get(id=id_section)
+        sectionform = self.form_class(request.POST, request.FILES, instance=section)
+        if sectionform.is_valid():
+            sectionform.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            current_user = request.user
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_section_table_admin.html",
+                          {'sectionform': sectionform, 'user': current_user,
+                           'company_name': company_name, 'id': id_section})
+
+# Delete Section
+class DeleteSectionAdminListView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        Section.objects.filter(pk=pk).delete()
+        sections = Section.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        return render(request, "section_table_admin.html",
+                      {'sections': sections, 'user': current_user, 'company_name': company_name,'section_deleted':'true'})

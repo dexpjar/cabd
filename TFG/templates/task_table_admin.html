@@ -129,39 +129,56 @@
 </div>
 
 <div class="container">
+    {% if task_deleted %}
+    <div id="div_task_deleted">
+        <br/>
+        <div class="alert alert-success">
+            <strong>Task deleted</strong>
+        </div>
+    </div>
+    {% endif %}
     <br />
     <div class="row">
         <div class="col-md-12 col-sm-12 col-xs-12  table-info">
-            <div class="col-lg-6">
+            <div class="col-lg-12">
+                <a id="a_button_new_task" href="{% url 'principal:new-task-admin-view' %}"><i class="fa fa-plus"></i> New Task</a>
+                <br /><br />
+            </div>
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8">
                 <div class="register-info-wraper table-register-info">
                     <div id="register-info">
-                        <h2 id="name_task"></h2>
-                    </div>
-                    <br />
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="cont3">
-                                <p><ok>State:</ok> <span id="state_task"></span></p>
-                                <p><ok>Creation Date:</ok> <span id="creationdate_task"></span></p>
-                                <p><ok>File Input:</ok> <span id="input_task"></span></p>
-                                <p><ok>File Output:</ok> <span id="output_task"></span></p>
-                                <p><ok>App:</ok> <span id="app_task"></span></p>
-                                <p><ok>User:</ok> <span id="user_task"></span></p>
-                                <p><ok>Taskcode:</ok> <span id="taskcode_task"></span></p>
+                        <div class="cont2">
+                            <h2 id="name_task"></h2>
                             </div>
+
+                        <br />
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="cont3">
+                                    <p><ok>State:</ok> <span id="state_task"></span></p>
+                                    <p><ok>Creation Date:</ok> <span id="creationdate_task"></span></p>
+                                    <p><ok>File Input:</ok> <span id="input_task"></span></p>
+                                    <p><ok>File Output:</ok> <span id="output_task"></span></p>
+                                    <p><ok>App:</ok> <span id="app_task"></span></p>
+                                    <p><ok>User:</ok> <span id="user_task"></span></p>
+                                    <p><ok>Taskcode:</ok> <span id="taskcode_task"></span></p>
+                                </div>
+                            </div>
+                        </div><!-- /inner row -->
+                        <hr>
+                        <div class="cont2">
+                            <h2>Choose Your Option</h2>
                         </div>
-                    </div><!-- /inner row -->
-                    <hr>
-                    <div class="cont2">
-                        <h2>Choose Your Option</h2>
-                    </div>
-                    <br />
-                    <div class="info-user2">
-                        <span aria-hidden="true" class="li_key fs1"></span>
-                        <span aria-hidden="true" class="li_lock fs1"></span>
+                        <br />
+                        <div class="info-user2">
+                            <a href="" id="link_deleted_task"><span aria-hidden="true" class="li_trash fs1"></span></a>
+                            <a href="" id="link_edit_task"><span aria-hidden="true" class="li_pen fs1"></span></a>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="col-lg-2"></div>
             <div class="col-lg-12">
                 <table class="display" id="dt1">
                     <thead>
@@ -196,6 +213,7 @@
                             <td class="table_app">{{ task.app.name }}</td>
                             <td class="table_user">{{ task.user.email }}</td>
                             <td class="table_taskcode">{{ task.taskcode }}</td>
+                            <input type="hidden" name="id" class="id_task" value="{{ task.pk }}"/>
                         </tr>
                         {% endfor %}
                         {% else %}
