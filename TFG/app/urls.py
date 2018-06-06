@@ -14,14 +14,21 @@ from app.views import detail_app_view, AppListView, create_user_view, \
     DeleteImageSlideShowAdminListView, DeleteUserAdminListView, NewUserAdminListView, EditUserAdminListView, \
     NewAppAdminListView, DeleteAppAdminListView, EditAppAdminListView, EditMyCompanyAdminListView, \
     NewSectionAdminListView, DeleteSectionAdminListView, EditSectionAdminListView, EditTaskAdminListView, \
-    DeleteTaskAdminListView, NewTaskAdminListView, NewParamInputAdminListView, DeleteParamInputAdminListView, \
-    EditParamInputAdminListView
+    DeleteTaskAdminListView, NewTaskAdminListView, \
+    ParamInputFileAdminListView, NewParamInputFileAdminListView, EditParamInputFileAdminListView, \
+    DeleteParamInputFileAdminListView, ParamInputTextAdminListView, NewParamInputTextAdminListView, \
+    DeleteParamInputTextAdminListView, EditParamInputTextAdminListView, ParamInputOptionAdminListView, \
+    NewParamInputOptionAdminListView, DeleteParamInputOptionAdminListView, EditParamInputOptionAdminListView, \
+    ParamInputSelectAdminListView, NewParamInputSelectAdminListView, DeleteParamInputSelectAdminListView, \
+    EditParamInputSelectAdminListView, TaskDetailView, SendAppCompatibilityView
 
 urlpatterns = [
     url(r'^create_user/$',create_user_view, name = 'create-user-view'),
     url(r'^detail/(?P<pk>\d+)$', detail_app_view, name='detail-apps-view'),
     url(r'^tasks/(?P<pk>\d+)$', tasks_app_view, name='tasks-apps-view'),
     url(r'^app/form/(?P<pk>\d+)$', login_required(AppFormView.as_view()), name='form-apps-view'),
+    url(r'^task/detail/(?P<pk>\d+)$', login_required(TaskDetailView.as_view()), name='task-detail-view'),
+    url(r'^send_app_compatibility/(?P<pk>\d+)$', login_required(SendAppCompatibilityView.as_view()), name='send-app-compatibility-view'),
     url(r'^dashboard/$', login_required(AppListView.as_view()), name='list-apps-view'),
     url(r'^user/edit/(?P<pk>\d+)$', login_required(UserUpdate.as_view()), name='edit-user-view'),
     url(r'^user/password/(?P<pk>\d+)$', change_password, name='change-password'),
@@ -57,9 +64,25 @@ urlpatterns = [
 
     # Admin Param Input
     url(r'^param_admin_view/$', login_required(ParamInputAdminListView.as_view()), name='list-param-admin-view'),
-    url(r'^new_param_admin_view/$', login_required(NewParamInputAdminListView.as_view()), name='new-param-admin-view'),
-    url(r'^delete_param_admin_view/(?P<pk>\d+)$', login_required(DeleteParamInputAdminListView.as_view()), name='delete-param-admin-view'),
-    url(r'^edit_param_admin_view/(?P<pk>\d+)$', login_required(EditParamInputAdminListView.as_view()), name='edit-param-admin-view'),
+    url(r'^param_file_admin_view/$', login_required(ParamInputFileAdminListView.as_view()), name='list-param-file-admin-view'),
+    url(r'^new_param_file_admin_view/$', login_required(NewParamInputFileAdminListView.as_view()), name='new-param-file-admin-view'),
+    url(r'^delete_param_file_admin_view/(?P<pk>\d+)$', login_required(DeleteParamInputFileAdminListView.as_view()), name='delete-param-file-admin-view'),
+    url(r'^edit_param_file_admin_view/(?P<pk>\d+)$', login_required(EditParamInputFileAdminListView.as_view()), name='edit-param-file-admin-view'),
+
+    url(r'^param_text_admin_view/$', login_required(ParamInputTextAdminListView.as_view()), name='list-param-text-admin-view'),
+    url(r'^new_param_text_admin_view/$', login_required(NewParamInputTextAdminListView.as_view()), name='new-param-text-admin-view'),
+    url(r'^delete_param_text_admin_view/(?P<pk>\d+)$', login_required(DeleteParamInputTextAdminListView.as_view()), name='delete-param-text-admin-view'),
+    url(r'^edit_param_text_admin_view/(?P<pk>\d+)$', login_required(EditParamInputTextAdminListView.as_view()), name='edit-param-text-admin-view'),
+
+    url(r'^param_option_admin_view/$', login_required(ParamInputOptionAdminListView.as_view()), name='list-param-option-admin-view'),
+    url(r'^new_param_option_admin_view/$', login_required(NewParamInputOptionAdminListView.as_view()), name='new-param-option-admin-view'),
+    url(r'^delete_param_option_admin_view/(?P<pk>\d+)$', login_required(DeleteParamInputOptionAdminListView.as_view()), name='delete-param-option-admin-view'),
+    url(r'^edit_param_option_admin_view/(?P<pk>\d+)$', login_required(EditParamInputOptionAdminListView.as_view()), name='edit-param-option-admin-view'),
+
+    url(r'^param_select_admin_view/$', login_required(ParamInputSelectAdminListView.as_view()), name='list-param-select-admin-view'),
+    url(r'^new_param_select_admin_view/$', login_required(NewParamInputSelectAdminListView.as_view()), name='new-param-select-admin-view'),
+    url(r'^delete_param_select_admin_view/(?P<pk>\d+)$', login_required(DeleteParamInputSelectAdminListView.as_view()), name='delete-param-select-admin-view'),
+    url(r'^edit_param_select_admin_view/(?P<pk>\d+)$', login_required(EditParamInputSelectAdminListView.as_view()), name='edit-param-select-admin-view'),
 
     # Admin Section
     url(r'^section_admin_view/$', login_required(SectionAdminListView.as_view()), name='list-section-admin-view'),

@@ -127,35 +127,73 @@
                                 </div>
                                 <div class="x_content">
                                     <br/>
-                                    <form action="{% url 'principal:create-task-view' app_select.id %}" method="post" id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
-                                        {% for param in params %}
+                                    <form action="{% url 'principal:create-task-view' app_select.id %}" method="POST" id="demo-form2" enctype="multipart/form-data" data-parsley-validate class="form-horizontal form-label-left">
                                         <div class="form-group">
-                                            <label class="control-label col-md-3 col-sm-3 col-xs-12">
-                                                <div class="info-hover"><i class="fa fa-info-circle"  style="size:1px;"></i>
-                                                  <span class="tooltiptext">{{ param.info }}</span>
+                                            {% for file in params_file %}
+                                            {% if file.type == 'input' %}
+                                            <div class="row">
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                                    <div class="info-hover"><i class="fa fa-info-circle"  style="size:1px;"></i>
+                                                      <span class="tooltiptext">{{ file.info }}</span>{{ file.name }}
+                                                    </div>
+                                                </label>
+
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    <input type="hidden" name="file_input_option" value="{{ file.option }}">
+                                                    {{ taskform.file_input }}
                                                 </div>
-                                                {{ param.name }}
-                                                {% if param.is_required == True %}
-                                                <span class="required">*</span>
-                                                {% endif %}
-                                            </label>
-                                            <div class="col-md-6 col-sm-6 col-xs-12">
-                                                {% if param.state == 'read' %}
-                                                <input type="text" name="{{ param.id }}" required="required" readonly="readonly" class="form-control col-md-7 col-xs-12" value="{{ param.value }}">
-
-                                                {% elif param.state == 'file' and param.is_required == True %}
-                                                <input type="file" name="{{ param.id }}" required="required" class="form-control col-md-7 col-xs-12">
-                                                {% elif param.state == 'file' and param.is_required == False %}
-                                                <input type="file" name="{{ param.id }}" class="form-control col-md-7 col-xs-12">
-
-                                                {% elif param.state == 'text' and param.is_required == True %}
-                                                <input type="text" name="{{ param.id }}" required="required" class="form-control col-md-7 col-xs-12">
-                                                {% elif param.state == 'text' and param.is_required == False %}
-                                                <input type="text" name="{{ param.id }}" class="form-control col-md-7 col-xs-12">
-                                                {% endif %}
                                             </div>
+                                            {% else %}
+                                            <div class="row">
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                                    <div class="info-hover"><i class="fa fa-info-circle"  style="size:1px;"></i>
+                                                      <span class="tooltiptext">{{ file.info }}</span>{{ file.name }}
+                                                    </div>
+                                                </label>
+
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    <input type="hidden" name="file_output_option" value="{{ file.option }}">
+                                                    {{ taskform.file_output }}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            <br />
+                                            {% endfor %}
+
+                                            {% for text in params_text %}
+                                            <div class="row">
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                                    <div class="info-hover"><i class="fa fa-info-circle"  style="size:1px;"></i>
+                                                      <span class="tooltiptext">{{ text.info }}</span>{{ text.name }}
+                                                    </div>
+                                                </label>
+
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    <input type="text" name="{{ text.option }}" required="required" class="form-control col-md-7 col-xs-12">
+                                                </div>
+                                            </div>
+                                            <br />
+                                            {% endfor %}
+
+
+                                            {% for select, options in params_option.items %}
+                                            <div class="row">
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                                                    <div class="info-hover"><i class="fa fa-info-circle"  style="size:1px;"></i>
+                                                      <span class="tooltiptext">{{ select.info }}</span>{{ select.name }}
+                                                    </div>
+                                                </label>
+
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    <select name="{{ select.option }}">
+                                                        {% for option in options %}
+                                                        <option value="{{ option.value }}">{{ option.value }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
                                         </div>
-                                        {% endfor %}
                                         <div class="ln_solid"></div>
                                         <div class="form-group">
                                             <div class="col-md-offset-8">

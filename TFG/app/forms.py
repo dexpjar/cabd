@@ -3,7 +3,8 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 
-from app.models import App, User, Profile, Task, ParamsInput, ImageSlideshow, MyCompany, Section
+from app.models import App, User, Profile, Task, ParamsInput, ImageSlideshow, MyCompany, Section, ParamsInputFile, \
+    ParamsInputText, ParamInputOption, ParamsInputSelect
 
 
 # class ParamsInputForm(forms.Form):
@@ -111,10 +112,32 @@ class MyCompanyForm(forms.ModelForm):
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['name','taskcode','state','file_input','file_output','app']
+        fields = ['file_input','file_output']
 
-        def __init__(self, *args, **kwargs):
-            super(ParamsInput, self).__init__(*args, **kwargs)
+        widgets = {
+            'file_input': forms.FileInput(attrs={'class': 'form-control'}),
+            'file_output': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+class TaskCompatibilityForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['name','state','file_input','file_output','app','taskcode']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}),
+            'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'State'}),
+            'file_input': forms.FileInput(attrs={'class': 'form-control'}),
+            'file_output': forms.FileInput(attrs={'class': 'form-control'}),
+            'taskcode': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Taskcode'}),
+        }
+
+
+class AppDetailForm(forms.ModelForm):
+    class Meta:
+        model = App
+        fields = ['app_compatibility']
+
 
 class TaskAdminForm(forms.ModelForm):
     class Meta:
@@ -153,6 +176,55 @@ class ParamForm(forms.ModelForm):
             'is_file_output': forms.CheckboxInput(),
             'info': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Info'}),
         }
+
+class ParamFileForm(forms.ModelForm):
+    LIST_TYPE = (('input', 'Input'), ('output', 'Output'))
+    type = forms.ChoiceField(choices=LIST_TYPE)
+    class Meta:
+        model = ParamsInputFile
+        fields = ['name','file_input','file_output','type','allowed_format','app','option','info']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}),
+            'file_input': forms.FileInput(attrs={'class': 'form-control'}),
+            'file_output': forms.FileInput(attrs={'class': 'form-control'}),
+            'allowed_format': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Allowed Format'}),
+            'option': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Option'}),
+            'info': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Info'}),
+        }
+
+class ParamTextForm(forms.ModelForm):
+    class Meta:
+        model = ParamsInputText
+        fields = ['name','value','app','option','info']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}),
+            'value': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Value'}),
+            'option': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Option'}),
+            'info': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Info'}),
+        }
+
+class ParamOptionForm(forms.ModelForm):
+    class Meta:
+        model = ParamInputOption
+        fields = ['value','select']
+
+        widgets = {
+            'value': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Value'}),
+        }
+
+class ParamSelectForm(forms.ModelForm):
+    class Meta:
+        model = ParamsInputSelect
+        fields = ['name','app','option','info']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name'}),
+            'option': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Option'}),
+            'info': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Info'}),
+        }
+
 
 class SectionForm(forms.ModelForm):
     class Meta:

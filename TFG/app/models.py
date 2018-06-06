@@ -63,6 +63,7 @@ class MyCompany(models.Model):
     email = models.EmailField('Email')
     citations = models.TextField('Citations')
 
+
 class App(models.Model):
     taskcode = models.CharField('TaskCode', max_length=100, blank=True, null=True)
     name = models.CharField('Name', max_length=100)
@@ -70,11 +71,14 @@ class App(models.Model):
     citation = models.TextField('Citation', blank=True, null=True)
     image = models.ImageField('Image', blank=True, null=True, upload_to=image_upload_location)
     command = models.CharField('Command', max_length=100, blank=False)
-    app_compatibility = models.ManyToManyField('self', blank=True)
+    app_compatibility = models.ManyToManyField('self',blank=True)
 
     def __str__(self):
         return '{}'.format(self.name)
 
+class Compatibility(models.Model):
+    from_app = models.ForeignKey(App, related_name='from_app')
+    to_app = models.ForeignKey(App, related_name='to_app')
 
 class Section(models.Model):
     title = models.CharField('Title', max_length=100)
@@ -124,7 +128,8 @@ class ParamsInput(models.Model):
 
 class ParamsInputFile(models.Model):
     name = models.CharField('Name', max_length=100)
-    value = models.CharField('Value', max_length=100)
+    file_input = models.FileField('File Input', upload_to=file_task_input_upload_location,blank=True)
+    file_output = models.FileField('File Output', upload_to=file_task_output_upload_location,blank=True)
     type = models.CharField('Type', max_length=20)
     allowed_format = models.CharField('Allowed Format', max_length=100)
     app = models.ForeignKey(App, related_name="param_file_id")
@@ -138,16 +143,22 @@ class ParamsInputText(models.Model):
     option = models.CharField('Option', max_length=10)
     info = models.TextField('Info')
 
-class ParamInputOption(models.Model):
-    value = models.CharField('Value', max_length=100)
-
 class ParamsInputSelect(models.Model):
     name = models.CharField('Name', max_length=100)
-    value = models.ForeignKey(ParamInputOption, related_name="option_id")
     app = models.ForeignKey(App, related_name="param_select_id")
     option = models.CharField('Option', max_length=10)
     info = models.TextField('Info')
+    value = models.CharField('Value', max_length=100)
 
+    def __str__(self):
+        return '{}'.format(self.name)
+
+class ParamInputOption(models.Model):
+    value = models.CharField('Value', max_length=100)
+    select = models.ForeignKey(ParamsInputSelect, related_name="select_id")
+
+    def __str__(self):
+        return '{}'.format(self.value)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

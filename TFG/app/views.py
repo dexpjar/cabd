@@ -17,14 +17,20 @@ from django.utils.http import urlsafe_base64_encode
 
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, FormView
+from pexpect import pxssh
 
 from app.forms import RegisterForm, ProfileForm, EditForm, LoginForm, TaskForm, ImageSlideshowForm, UserForm, AppForm, \
-    MyCompanyForm, SectionForm, TaskAdminForm, ParamForm
-from app.models import App, User, Profile, Task, Section, MyCompany, ImageSlideshow, ParamsInput
+    MyCompanyForm, SectionForm, TaskAdminForm, ParamForm, ParamFileForm, ParamTextForm, ParamOptionForm, \
+    ParamSelectForm, AppDetailForm
+from app.models import App, User, Profile, Task, Section, MyCompany, ImageSlideshow, ParamsInput, ParamsInputFile, \
+    ParamsInputText, ParamsInputSelect, ParamInputOption, Compatibility
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.urlresolvers import reverse_lazy
 from django.utils import six
 
+import paramiko
+import os
+from datetime import datetime, timedelta
 
 # Funcion que comprueba que los campos del registro son validos y crea el usuario
 def create_user_view(request):
@@ -69,7 +75,7 @@ class Login(FormView):
     form_class.base_fields['password'].widget.attrs['class'] = "form-control"
     form_class.company_name = MyCompany.objects.all()[:1].get()
     form_class.first_slideshow = ImageSlideshow.objects.all()[:1].get()
-    form_class.slideshows = ImageSlideshow.objects.all()
+    form_class.slideshows = ImageSlideshow.objects.all()[1:]
     form_class.apps = App.objects.all()
     # Le decimos que cuando se haya completado exitosamente la operación nos redireccione a la url bienvenida de la aplicación personas
     success_url = reverse_lazy("principal:list-apps-view")
@@ -97,14 +103,14 @@ class AdminLogin(FormView):
     success_url = reverse_lazy("principal:admin-view")
 
     def dispatch(self, request, *args, **kwargs):
-         company = MyCompany.objects.all()[:1].get()
-         company_name = company.name
-         args = company_name
-         return super(AdminLogin, self).dispatch(request, *args, **kwargs)
+        company = MyCompany.objects.all()[:1].get()
+        company_name = company.name
+        args = company_name
+        return super(AdminLogin, self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         username = self.request.POST['username']
-        user = self.model.objects.get(username= username)
+        user = self.model.objects.get(username=username)
         if not user.is_superuser:
             form._errors[forms.forms.NON_FIELD_ERRORS] = ErrorList([
                 u'This user is not superuser'
@@ -143,6 +149,7 @@ def detail_app_view(request, pk):
     }
     return render(request, 'app_detail.html', context)
 
+
 @login_required
 def admin_view(request):
     user_count = User.objects.count()
@@ -150,7 +157,11 @@ def admin_view(request):
     mycompany_count = MyCompany.objects.count()
     task_count = Task.objects.count()
     image_count = ImageSlideshow.objects.count()
-    param_count = ParamsInput.objects.count()
+    param_file_count = ParamsInputFile.objects.count()
+    param_text_count = ParamsInputText.objects.count()
+    param_select_count = ParamsInputSelect.objects.count()
+    param_option_count = ParamInputOption.objects.count()
+    param_count = param_file_count + param_text_count + param_select_count + param_option_count
     section_count = Section.objects.count()
     company_name = MyCompany.objects.all()[:1].get()
     # current_user = request.user
@@ -200,10 +211,20 @@ class AppListView(LoginRequiredMixin, View):
 
 
 class AppFormView(LoginRequiredMixin, View):
+    model = Task
+    form_class = TaskForm
+
     def get(self, request, pk):
         apps = App.objects.all()
         app_select = App.objects.get(pk=pk)
-        params = ParamsInput.objects.filter(app_id=pk)
+        taskform = self.form_class()
+        params_file = ParamsInputFile.objects.filter(app_id=pk)
+        params_text = ParamsInputText.objects.filter(app_id=pk)
+        params_select = ParamsInputSelect.objects.filter(app_id=pk)
+        params_option = {}
+        for select in params_select:
+            options = ParamInputOption.objects.filter(select_id=select.pk)
+            params_option[select] = options
         company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
         try:
@@ -216,58 +237,143 @@ class AppFormView(LoginRequiredMixin, View):
             'tasks': tasks,
             'company_name': company_name,
             'app_select': app_select,
-            'params': params,
+            'params_file': params_file,
+            'params_text': params_text,
+            'params_select': params_select,
+            'params_option': params_option,
+            'taskform': taskform,
         }
         return render(request, "form_app.html", context)
 
 
-class create_task_view(CreateView):
+class TaskDetailView(LoginRequiredMixin, View):
+    model = App
+    form_class = AppDetailForm
+
+    def get(self, request, pk):
+        apps = App.objects.all()
+        task_select = Task.objects.get(pk=pk)
+        app_task = App.objects.get(pk=task_select.app.pk)
+        compatibility = app_task.app_compatibility.all()
+        # appform = self.form_class(instance=compatibility)
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        context = {
+            'apps': apps,
+            'user': current_user,
+            'task_select': task_select,
+            'company_name': company_name,
+            'compatibility': compatibility,
+        }
+        return render(request, "form_task.html", context)
+
+class SendAppCompatibilityView(LoginRequiredMixin, View):
     model = Task
     form_class = TaskForm
 
-    def form_valid(self, form):
-        file = self.cleaned_data.get('file_input', None)
-        form.save()
-        return super(self).form_valid(form)
+    def post(self, request, *args, **kwargs):
+        apps = App.objects.all()
+        pk = kwargs['pk']
+        task_select = Task.objects.get(pk=pk)
+        app_select = task_select.app
+        taskform = self.form_class(task_select,request.POST, task_select.file_input.file)
+        command = task_select.name.split(" ")
+        params_file = ParamsInputFile.objects.filter(app_id=app_select.pk)
+        # for param_file in params_file:
+        #     for c in range(len(command)):
+        #         if param_file.option == command[c] and param_file.type == "input":
+        #             taskform.initial.update({'file_input': task_select.file_input})
+        #             taskform.data.update({'file_input': task_select.file_input})
+        #             taskform.fields.file_input= task_select.file_input
+        #         elif param_file.option == command[c] and param_file.type == "output":
+        #             taskform.initial.update({'file_output': task_select.file_output})
+        params_text = ParamsInputText.objects.filter(app_id=app_select.pk)
+        params_select = ParamsInputSelect.objects.filter(app_id=app_select.pk)
+        params_option = {}
+        for select in params_select:
+            options = ParamInputOption.objects.filter(select_id=select.pk)
+            params_option[select] = options
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        try:
+            tasks = Task.objects.filter(user=current_user)
+        except Task.DoesNotExist:
+            tasks = None
+        context = {
+            'apps': apps,
+            'user': current_user,
+            'tasks': tasks,
+            'company_name': company_name,
+            'app_select': app_select,
+            'params_file': params_file,
+            'params_text': params_text,
+            'params_select': params_select,
+            'params_option': params_option,
+            'taskform': taskform,
+        }
+        return render(request, "form_app.html", context)
 
-    def create_task_view(request, pk):
-        if request.method == 'POST':
-            app_select = App.objects.get(pk=pk)
-            params_ids = ParamsInput.objects.filter(app_id=pk)
-            ids = [str(param_id.id) for param_id in params_ids]
-            command = app_select.command
-            taskcode = app_select.name
-            current_user = request.user
-            for param_id in ids:
-                valor = request.POST[param_id]
-                param = ParamsInput.objects.get(pk=param_id)
-                if valor:
-                    command += " " + param.option + " " + valor
+
+
+
+def create_task_view(request, pk):
+    if request.method == 'POST':
+        taskform = TaskForm(request.POST, request.FILES)
+        tasknew = taskform.save()
+        app_select = App.objects.get(pk=pk)
+        tasknew.app = app_select
+        command = app_select.command
+        taskcode = app_select.taskcode
+        current_user = request.user
+        for valor in request.POST:
+            if valor != 'csrfmiddlewaretoken' and valor != 'file_input_option' and valor != 'file_output_option':
+                if request.POST[valor]:
+                    command += " " + valor + " " + request.POST[valor]
                 else:
-                    command += " " + param.option
-                if param.is_file_input:
-                    file_input = valor
-                if param.is_file_output:
-                    file_output = valor
+                    command += " " + valor
+        if 'file_input_option' in request.POST:
+            command += " " + request.POST['file_input_option'] + " " + request.FILES['file_input'].name
+        if 'file_output_option' in request.POST:
+            command += " " + request.POST['file_output_option'] + " " + request.FILES['file_output'].name
 
-            new_task = Task.objects.create()
-            new_task.name = command
-            new_task.taskcode = taskcode
-            new_task.app = app_select
-            new_task.app_id = app_select
-            new_task.user = current_user
-            new_task.file_input = file_input
-            new_task.file_output = file_output
-            new_task.save()
-            apps = App.objects.all()
-            company_name = MyCompany.objects.all()[:1].get()
-            current_user = request.user
-            try:
-                tasks = Task.objects.filter(user=current_user)
-            except Task.DoesNotExist:
-                tasks = None
-            return render(request, "dashboard.html",
-                          {'apps': apps, 'user': current_user, 'tasks': tasks, 'company_name': company_name})
+        tasknew.name = command
+        tasknew.taskcode = taskcode + "-" + current_user.email + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        tasknew.app_id = app_select
+        tasknew.user = current_user
+        tasknew.save()
+
+        # Conexion al FTP
+        ftp_host = 'hpccluster.upo.es'
+        ftp_user = 'ftpsUser'
+        ftp_password = 'd86aewXiGUfxFy4'
+        transport = paramiko.Transport((ftp_host, int(22)))
+        transport.connect(username=ftp_user, password=ftp_password)
+        ftp = paramiko.sftp_client.SFTPClient.from_transport(transport)
+
+        dir_remote = "/home/ftpsUser/input/pending/"+tasknew.taskcode+"/"
+        ftp.mkdir(dir_remote)
+
+        local_file = tasknew.file_input.path
+        remote_file = dir_remote + os.path.basename(tasknew.file_input.name)
+
+        ftp.put(local_file, remote_file)
+
+        file = ftp.file(dir_remote+'cmd.txt', "w+")
+        file.write(tasknew.name)
+        file.flush()
+
+        transport.close()
+
+
+        apps = App.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        try:
+            tasks = Task.objects.filter(user=current_user)
+        except Task.DoesNotExist:
+            tasks = None
+        return render(request, "dashboard.html",
+                      {'apps': apps, 'user': current_user, 'tasks': tasks, 'company_name': company_name})
 
 
 class AppListViewAlt(ListView):
@@ -345,6 +451,7 @@ class UserAdminListView(LoginRequiredMixin, View):
         return render(request, "user_table_admin.html",
                       {'users': users, 'user': current_user, 'company_name': company_name})
 
+
 class NewUserAdminListView(LoginRequiredMixin, View):
     model = User
     second_model = Profile
@@ -352,7 +459,6 @@ class NewUserAdminListView(LoginRequiredMixin, View):
     form_class = UserForm
     second_form_class = ProfileForm
     success_url = reverse_lazy('principal:list-user-admin-view')
-
 
     def get(self, request):
         userform = self.form_class()
@@ -362,7 +468,7 @@ class NewUserAdminListView(LoginRequiredMixin, View):
             'userform': userform,
             'profileform': profileform,
             'company_name': company_name,
-            'new_user':'true'
+            'new_user': 'true'
         }
         return render(request, "new_user_table_admin.html", context)
 
@@ -381,7 +487,8 @@ class NewUserAdminListView(LoginRequiredMixin, View):
         else:
             company_name = MyCompany.objects.all()[:1].get()
             return render(request, "new_user_table_admin.html",
-                          {'userform': userform, 'profileform': profileform, 'company_name': company_name,'new_user':'true'})
+                          {'userform': userform, 'profileform': profileform, 'company_name': company_name,
+                           'new_user': 'true'})
 
 
 class EditUserAdminListView(UpdateView):
@@ -431,7 +538,8 @@ class DeleteUserAdminListView(LoginRequiredMixin, View):
         company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
         return render(request, "user_table_admin.html",
-                      {'users': users, 'user': current_user, 'company_name': company_name,'user_deleted':'true'})
+                      {'users': users, 'user': current_user, 'company_name': company_name, 'user_deleted': 'true'})
+
 
 class AppAdminListView(LoginRequiredMixin, View):
     def get(self, request):
@@ -448,14 +556,13 @@ class NewAppAdminListView(LoginRequiredMixin, View):
     form_class = AppForm
     success_url = reverse_lazy('principal:list-app-admin-view')
 
-
     def get(self, request):
         appform = self.form_class()
         company_name = MyCompany.objects.all()[:1].get()
         context = {
             'appform': appform,
             'company_name': company_name,
-            'new_app':'true'
+            'new_app': 'true'
         }
         return render(request, "new_app_table_admin.html", context)
 
@@ -467,7 +574,7 @@ class NewAppAdminListView(LoginRequiredMixin, View):
         else:
             company_name = MyCompany.objects.all()[:1].get()
             return render(request, "new_app_table_admin.html",
-                          {'appform': appform, 'company_name': company_name,'new_app':'true'})
+                          {'appform': appform, 'company_name': company_name, 'new_app': 'true'})
 
 
 class EditAppAdminListView(UpdateView):
@@ -509,7 +616,8 @@ class DeleteAppAdminListView(LoginRequiredMixin, View):
         company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
         return render(request, "app_table_admin.html",
-                      {'apps': apps, 'user': current_user, 'company_name': company_name,'user_deleted':'true'})
+                      {'apps': apps, 'user': current_user, 'company_name': company_name, 'user_deleted': 'true'})
+
 
 class MyCompanyAdminListView(LoginRequiredMixin, View):
     def get(self, request):
@@ -549,6 +657,7 @@ class EditMyCompanyAdminListView(UpdateView):
                           {'mycompanyform': mycompanyform, 'user': current_user,
                            'company_name': company_name})
 
+
 # Backend Admin Task
 
 # List Tasks
@@ -561,6 +670,7 @@ class TaskAdminListView(LoginRequiredMixin, View):
         return render(request, "task_table_admin.html",
                       {'tasks': tasks, 'user': current_user, 'company_name': company_name})
 
+
 # Create Task
 class NewTaskAdminListView(LoginRequiredMixin, View):
     model = Task
@@ -568,14 +678,13 @@ class NewTaskAdminListView(LoginRequiredMixin, View):
     form_class = TaskAdminForm
     success_url = reverse_lazy('principal:list-task-admin-view')
 
-
     def get(self, request):
         taskform = self.form_class()
         company_name = MyCompany.objects.all()[:1].get()
         context = {
             'taskform': taskform,
             'company_name': company_name,
-            'new_task':'true'
+            'new_task': 'true'
         }
         return render(request, "new_task_table_admin.html", context)
 
@@ -587,7 +696,8 @@ class NewTaskAdminListView(LoginRequiredMixin, View):
         else:
             company_name = MyCompany.objects.all()[:1].get()
             return render(request, "new_task_table_admin.html",
-                          {'taskform': taskform, 'company_name': company_name,'new_task':'true'})
+                          {'taskform': taskform, 'company_name': company_name, 'new_task': 'true'})
+
 
 # Edit Task
 class EditTaskAdminListView(UpdateView):
@@ -621,6 +731,7 @@ class EditTaskAdminListView(UpdateView):
                           {'taskform': taskform, 'user': current_user,
                            'company_name': company_name, 'id': id_task})
 
+
 # Delete Task
 class DeleteTaskAdminListView(LoginRequiredMixin, View):
     def get(self, request, pk):
@@ -629,7 +740,7 @@ class DeleteTaskAdminListView(LoginRequiredMixin, View):
         company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
         return render(request, "task_table_admin.html",
-                      {'tasks': tasks, 'user': current_user, 'company_name': company_name,'task_deleted':'true'})
+                      {'tasks': tasks, 'user': current_user, 'company_name': company_name, 'task_deleted': 'true'})
 
 
 # Backend Admin ImageSlideShow
@@ -643,12 +754,12 @@ class ImageSlideShowAdminListView(LoginRequiredMixin, View):
         return render(request, "image_table_admin.html",
                       {'images': images, 'user': current_user, 'company_name': company_name})
 
+
 class NewImageSlideShowAdminListView(LoginRequiredMixin, View):
     model = ImageSlideshow
     template_name = 'new_image_table_admin.html'
     form_class = ImageSlideshowForm
     success_url = reverse_lazy('principal:list-image-admin-view')
-
 
     def get(self, request):
         imageform = self.form_class()
@@ -660,16 +771,15 @@ class NewImageSlideShowAdminListView(LoginRequiredMixin, View):
         return render(request, "new_image_table_admin.html", context)
 
     def post(self, request, *args, **kwargs):
-        imageform = ImageSlideshowForm(request.POST,request.FILES)
+        imageform = ImageSlideshowForm(request.POST, request.FILES)
         if imageform.is_valid():
-            imageSlide = ImageSlideshow(image = request.FILES['image'])
+            imageSlide = ImageSlideshow(image=request.FILES['image'])
             imageSlide.save()
             return HttpResponseRedirect(self.success_url)
         else:
             company_name = MyCompany.objects.all()[:1].get()
             return render(request, "new_image_table_admin.html",
                           {'imageform': imageform, 'company_name': company_name})
-
 
 
 class DeleteImageSlideShowAdminListView(LoginRequiredMixin, View):
@@ -679,7 +789,8 @@ class DeleteImageSlideShowAdminListView(LoginRequiredMixin, View):
         company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
         return render(request, "image_table_admin.html",
-                      {'images': images, 'user': current_user, 'company_name': company_name,'image_deleted': 'image_deleted'})
+                      {'images': images, 'user': current_user, 'company_name': company_name,
+                       'image_deleted': 'image_deleted'})
 
 
 # Backend Admin Param Input
@@ -687,19 +798,37 @@ class DeleteImageSlideShowAdminListView(LoginRequiredMixin, View):
 # List Param Input
 class ParamInputAdminListView(LoginRequiredMixin, View):
     def get(self, request):
-        params = ParamsInput.objects.all()
+        param_file_count = ParamsInputFile.objects.count()
+        param_text_count = ParamsInputText.objects.count()
+        param_select_count = ParamsInputSelect.objects.count()
+        param_option_count = ParamInputOption.objects.count()
+        company_name = MyCompany.objects.all()[:1].get()
+        context = {
+            'param_file_count': param_file_count,
+            'param_text_count': param_text_count,
+            'param_select_count': param_select_count,
+            'param_option_count': param_option_count,
+            'company_name': company_name,
+        }
+        return render(request, "param_table_admin.html", context)
+
+
+# List Param File Input
+class ParamInputFileAdminListView(LoginRequiredMixin, View):
+    def get(self, request):
+        params = ParamsInputFile.objects.all()
         company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
-        return render(request, "param_table_admin.html",
+        return render(request, "param_file_table_admin.html",
                       {'params': params, 'user': current_user, 'company_name': company_name})
 
-# Create Param Input
-class NewParamInputAdminListView(LoginRequiredMixin, View):
-    model = ParamsInput
-    template_name = 'new_param_table_admin.html'
-    form_class = ParamForm
-    success_url = reverse_lazy('principal:list-param-admin-view')
 
+# Create Param Input File
+class NewParamInputFileAdminListView(LoginRequiredMixin, View):
+    model = ParamsInputFile
+    template_name = 'new_param_file_table_admin.html'
+    form_class = ParamFileForm
+    success_url = reverse_lazy('principal:list-param-file-admin-view')
 
     def get(self, request):
         paramform = self.form_class()
@@ -707,29 +836,30 @@ class NewParamInputAdminListView(LoginRequiredMixin, View):
         context = {
             'paramform': paramform,
             'company_name': company_name,
-            'new_param':'true'
+            'new_param': 'true'
         }
-        return render(request, "new_param_table_admin.html", context)
+        return render(request, "new_param_file_table_admin.html", context)
 
     def post(self, request, *args, **kwargs):
-        paramform = ParamForm(request.POST)
+        paramform = ParamFileForm(request.POST)
         if paramform.is_valid():
             paramform.save()
             return HttpResponseRedirect(self.success_url)
         else:
             company_name = MyCompany.objects.all()[:1].get()
-            return render(request, "new_param_table_admin.html",
-                          {'paramform': paramform, 'company_name': company_name,'new_param':'true'})
+            return render(request, "new_param_file_table_admin.html",
+                          {'paramform': paramform, 'company_name': company_name, 'new_param': 'true'})
 
-# Edit Param Input
-class EditParamInputAdminListView(UpdateView):
-    model = ParamsInput
-    template_name = 'new_param_table_admin.html'
-    form_class = ParamForm
-    success_url = reverse_lazy('principal:list-param-admin-view')
+
+# Edit Param Input File
+class EditParamInputFileAdminListView(UpdateView):
+    model = ParamsInputFile
+    template_name = 'new_param_file_table_admin.html'
+    form_class = ParamFileForm
+    success_url = reverse_lazy('principal:list-param-file-admin-view')
 
     def get_context_data(self, **kwargs):
-        context = super(EditParamInputAdminListView, self).get_context_data(**kwargs)
+        context = super(EditParamInputFileAdminListView, self).get_context_data(**kwargs)
         pk = self.kwargs.get('pk', 0)
         param = self.model.objects.get(id=pk)
         if 'paramform' not in context:
@@ -749,19 +879,267 @@ class EditParamInputAdminListView(UpdateView):
         else:
             current_user = request.user
             company_name = MyCompany.objects.all()[:1].get()
-            return render(request, "new_param_table_admin.html",
+            return render(request, "new_param_file_table_admin.html",
                           {'paramform': paramform, 'user': current_user,
                            'company_name': company_name, 'id': id_param})
 
-# Delete Param Input
-class DeleteParamInputAdminListView(LoginRequiredMixin, View):
+
+# Delete Param Input File
+class DeleteParamInputFileAdminListView(LoginRequiredMixin, View):
     def get(self, request, pk):
-        ParamsInput.objects.filter(pk=pk).delete()
-        params = ParamsInput.objects.all()
+        ParamsInputFile.objects.filter(pk=pk).delete()
+        params = ParamsInputFile.objects.all()
         company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
-        return render(request, "param_table_admin.html",
-                      {'params': params, 'user': current_user, 'company_name': company_name,'param_deleted':'true'})
+        return render(request, "param_file_table_admin.html",
+                      {'params': params, 'user': current_user, 'company_name': company_name, 'param_deleted': 'true'})
+
+
+# List Param File Text
+class ParamInputTextAdminListView(LoginRequiredMixin, View):
+    def get(self, request):
+        params = ParamsInputText.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        return render(request, "param_text_table_admin.html",
+                      {'params': params, 'user': current_user, 'company_name': company_name})
+
+
+# Create Param Input Text
+class NewParamInputTextAdminListView(LoginRequiredMixin, View):
+    model = ParamsInputText
+    template_name = 'new_param_text_table_admin.html'
+    form_class = ParamTextForm
+    success_url = reverse_lazy('principal:list-param-text-admin-view')
+
+    def get(self, request):
+        paramform = self.form_class()
+        company_name = MyCompany.objects.all()[:1].get()
+        context = {
+            'paramform': paramform,
+            'company_name': company_name,
+            'new_param': 'true'
+        }
+        return render(request, "new_param_text_table_admin.html", context)
+
+    def post(self, request, *args, **kwargs):
+        paramform = ParamTextForm(request.POST)
+        if paramform.is_valid():
+            paramform.save()
+            return HttpResponseRedirect(self.success_url)
+        else:
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_param_text_table_admin.html",
+                          {'paramform': paramform, 'company_name': company_name, 'new_param': 'true'})
+
+
+# Edit Param Input Text
+class EditParamInputTextAdminListView(UpdateView):
+    model = ParamsInputText
+    template_name = 'new_param_text_table_admin.html'
+    form_class = ParamTextForm
+    success_url = reverse_lazy('principal:list-param-text-admin-view')
+
+    def get_context_data(self, **kwargs):
+        context = super(EditParamInputTextAdminListView, self).get_context_data(**kwargs)
+        pk = self.kwargs.get('pk', 0)
+        param = self.model.objects.get(id=pk)
+        if 'paramform' not in context:
+            context['paramform'] = self.form_class(instance=param)
+        context['id'] = pk
+        context['company_name'] = MyCompany.objects.all()[:1].get()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object
+        id_param = kwargs['pk']
+        param = self.model.objects.get(id=id_param)
+        paramform = self.form_class(request.POST, instance=param)
+        if paramform.is_valid():
+            paramform.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            current_user = request.user
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_param_text_table_admin.html",
+                          {'paramform': paramform, 'user': current_user,
+                           'company_name': company_name, 'id': id_param})
+
+
+# Delete Param Text
+class DeleteParamInputTextAdminListView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        ParamsInputText.objects.filter(pk=pk).delete()
+        params = ParamsInputText.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        return render(request, "param_text_table_admin.html",
+                      {'params': params, 'user': current_user, 'company_name': company_name, 'param_deleted': 'true'})
+
+
+# List Param File Option
+class ParamInputOptionAdminListView(LoginRequiredMixin, View):
+    def get(self, request):
+        params = ParamInputOption.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        return render(request, "param_option_table_admin.html",
+                      {'params': params, 'user': current_user, 'company_name': company_name})
+
+
+# Create Param Input Option
+class NewParamInputOptionAdminListView(LoginRequiredMixin, View):
+    model = ParamInputOption
+    template_name = 'new_param_option_table_admin.html'
+    form_class = ParamOptionForm
+    success_url = reverse_lazy('principal:list-param-option-admin-view')
+
+    def get(self, request):
+        paramform = self.form_class()
+        company_name = MyCompany.objects.all()[:1].get()
+        context = {
+            'paramform': paramform,
+            'company_name': company_name,
+            'new_param': 'true'
+        }
+        return render(request, "new_param_option_table_admin.html", context)
+
+    def post(self, request, *args, **kwargs):
+        paramform = ParamOptionForm(request.POST)
+        if paramform.is_valid():
+            paramform.save()
+            return HttpResponseRedirect(self.success_url)
+        else:
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_param_option_table_admin.html",
+                          {'paramform': paramform, 'company_name': company_name, 'new_param': 'true'})
+
+
+# Edit Param Input Option
+class EditParamInputOptionAdminListView(UpdateView):
+    model = ParamInputOption
+    template_name = 'new_param_option_table_admin.html'
+    form_class = ParamOptionForm
+    success_url = reverse_lazy('principal:list-param-option-admin-view')
+
+    def get_context_data(self, **kwargs):
+        context = super(EditParamInputOptionAdminListView, self).get_context_data(**kwargs)
+        pk = self.kwargs.get('pk', 0)
+        param = self.model.objects.get(id=pk)
+        if 'paramform' not in context:
+            context['paramform'] = self.form_class(instance=param)
+        context['id'] = pk
+        context['company_name'] = MyCompany.objects.all()[:1].get()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object
+        id_param = kwargs['pk']
+        param = self.model.objects.get(id=id_param)
+        paramform = self.form_class(request.POST, instance=param)
+        if paramform.is_valid():
+            paramform.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            current_user = request.user
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_param_option_table_admin.html",
+                          {'paramform': paramform, 'user': current_user,
+                           'company_name': company_name, 'id': id_param})
+
+
+# Delete Param Option
+class DeleteParamInputOptionAdminListView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        ParamInputOption.objects.filter(pk=pk).delete()
+        params = ParamInputOption.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        return render(request, "param_option_table_admin.html",
+                      {'params': params, 'user': current_user, 'company_name': company_name, 'param_deleted': 'true'})
+
+
+# List Param File Select
+class ParamInputSelectAdminListView(LoginRequiredMixin, View):
+    def get(self, request):
+        params = ParamsInputSelect.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        return render(request, "param_select_table_admin.html",
+                      {'params': params, 'user': current_user, 'company_name': company_name})
+
+
+# Create Param Input Select
+class NewParamInputSelectAdminListView(LoginRequiredMixin, View):
+    model = ParamsInputSelect
+    template_name = 'new_param_select_table_admin.html'
+    form_class = ParamSelectForm
+    success_url = reverse_lazy('principal:list-param-select-admin-view')
+
+    def get(self, request):
+        paramform = self.form_class()
+        company_name = MyCompany.objects.all()[:1].get()
+        context = {
+            'paramform': paramform,
+            'company_name': company_name,
+            'new_param': 'true'
+        }
+        return render(request, "new_param_select_table_admin.html", context)
+
+    def post(self, request, *args, **kwargs):
+        paramform = ParamSelectForm(request.POST)
+        if paramform.is_valid():
+            paramform.save()
+            return HttpResponseRedirect(self.success_url)
+        else:
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_param_select_table_admin.html",
+                          {'paramform': paramform, 'company_name': company_name, 'new_param': 'true'})
+
+
+# Edit Param Input Select
+class EditParamInputSelectAdminListView(UpdateView):
+    model = ParamsInputSelect
+    template_name = 'new_param_select_table_admin.html'
+    form_class = ParamSelectForm
+    success_url = reverse_lazy('principal:list-param-select-admin-view')
+
+    def get_context_data(self, **kwargs):
+        context = super(EditParamInputSelectAdminListView, self).get_context_data(**kwargs)
+        pk = self.kwargs.get('pk', 0)
+        param = self.model.objects.get(id=pk)
+        if 'paramform' not in context:
+            context['paramform'] = self.form_class(instance=param)
+        context['id'] = pk
+        context['company_name'] = MyCompany.objects.all()[:1].get()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object
+        id_param = kwargs['pk']
+        param = self.model.objects.get(id=id_param)
+        paramform = self.form_class(request.POST, instance=param)
+        if paramform.is_valid():
+            paramform.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            current_user = request.user
+            company_name = MyCompany.objects.all()[:1].get()
+            return render(request, "new_param_select_table_admin.html",
+                          {'paramform': paramform, 'user': current_user,
+                           'company_name': company_name, 'id': id_param})
+
+
+# Delete Param Select
+class DeleteParamInputSelectAdminListView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        ParamsInputSelect.objects.filter(pk=pk).delete()
+        params = ParamsInputSelect.objects.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        return render(request, "param_select_table_admin.html",
+                      {'params': params, 'user': current_user, 'company_name': company_name, 'param_deleted': 'true'})
+
 
 # Backend Admin Section
 
@@ -774,6 +1152,7 @@ class SectionAdminListView(LoginRequiredMixin, View):
         return render(request, "section_table_admin.html",
                       {'sections': sections, 'user': current_user, 'company_name': company_name})
 
+
 # Create Section
 class NewSectionAdminListView(LoginRequiredMixin, View):
     model = Section
@@ -781,14 +1160,13 @@ class NewSectionAdminListView(LoginRequiredMixin, View):
     form_class = SectionForm
     success_url = reverse_lazy('principal:list-section-admin-view')
 
-
     def get(self, request):
         sectionform = self.form_class()
         company_name = MyCompany.objects.all()[:1].get()
         context = {
             'sectionform': sectionform,
             'company_name': company_name,
-            'new_section':'true'
+            'new_section': 'true'
         }
         return render(request, "new_section_table_admin.html", context)
 
@@ -800,7 +1178,8 @@ class NewSectionAdminListView(LoginRequiredMixin, View):
         else:
             company_name = MyCompany.objects.all()[:1].get()
             return render(request, "new_section_table_admin.html",
-                          {'sectionform': sectionform, 'company_name': company_name,'new_section':'true'})
+                          {'sectionform': sectionform, 'company_name': company_name, 'new_section': 'true'})
+
 
 # Edit Section
 class EditSectionAdminListView(UpdateView):
@@ -834,6 +1213,7 @@ class EditSectionAdminListView(UpdateView):
                           {'sectionform': sectionform, 'user': current_user,
                            'company_name': company_name, 'id': id_section})
 
+
 # Delete Section
 class DeleteSectionAdminListView(LoginRequiredMixin, View):
     def get(self, request, pk):
@@ -842,4 +1222,5 @@ class DeleteSectionAdminListView(LoginRequiredMixin, View):
         company_name = MyCompany.objects.all()[:1].get()
         current_user = request.user
         return render(request, "section_table_admin.html",
-                      {'sections': sections, 'user': current_user, 'company_name': company_name,'section_deleted':'true'})
+                      {'sections': sections, 'user': current_user, 'company_name': company_name,
+                       'section_deleted': 'true'})

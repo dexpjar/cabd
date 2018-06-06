@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Dashboard</title>
+    <link rel="icon" type="image/jpg" href="{% static 'img/cabd.jpg' %}"/>
+    <!-- Bootstrap core CSS-->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Custom fonts for this template-->
+    <link href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="{% static 'css/nprogress.css' %}" rel="stylesheet">
+    <!-- Footer -->
+    <link href="{% static 'css/footer-distributed-with-address-and-phones.css' %}" rel="stylesheet">
+    <!-- Custom Theme Style -->
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+
+    <!-- Datatables -->
+    <link href="{% static 'css/green.css' %}" rel="stylesheet">
+    <link href="{% static 'css/dataTables.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/buttons.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/fixedHeader.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/responsive.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/scroller.bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Css Form App -->
+    <link href="{% static 'css/form_app.css' %}" rel="stylesheet">
+</head>
+
+<body class="nav-md">
+<!-- Navigation-->
+<div class="body">
+    <div class="container body">
+        <div class="main_container">
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a href="{% url 'principal:list-apps-view' %}" class="site_title"><img src="{% static 'img/icon_dashboard2.png' %}" alt="icon" style="width:45px;"> GGAFE<span></span></a>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <!-- menu profile quick info -->
+                    <div class="profile clearfix">
+                        <div class="profile_pic">
+                            <img src="{% static 'img/avatar.png' %}" alt="avatar" class="img-circle profile_img">
+                        </div>
+                        <div class="profile_info">
+                            <span>Welcome,</span>
+                            <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+                        </div>
+                    </div>
+                    <!-- /menu profile quick info -->
+
+                    <br/>
+
+                    <!-- sidebar menu -->
+                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                        <div class="menu_section">
+                            <ul class="nav side-menu">
+                                <li><a href="{% url 'principal:list-apps-view' %}"><i class="fa fa-home"></i> Home </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="menu_section">
+                            <h3>APPLICATIONS</h3>
+                            <ul class="nav side-menu">
+                                {% for app in apps %}
+                                <li><a><i class="fa fa-clone"></i> {{ app.name }} <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li><a href="{% url 'principal:detail-apps-view' app.pk %}">General Information</a></li>
+                                        <li><a href="{% url 'principal:tasks-apps-view' app.pk %}">Tasks Created</a></li>
+                                        <li><a href="{% url 'principal:form-apps-view' app.pk %}">New Task</a></li>
+                                    </ul>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- /menu footer buttons -->
+                </div>
+            </div>
+            <!-- top navigation -->
+            <div class="top_nav">
+                <div class="nav_menu">
+                    <nav>
+                        <div class="nav toggle">
+                            <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                        </div>
+
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="">
+                                <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown"
+                                   aria-expanded="false">
+                                    <img src="{% static 'img/avatar.png' %}" alt="avatar">{{ user.first_name }}
+                                    <span class=" fa fa-angle-down"></span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-usermenu pull-right">
+                                    <li><a href="{% url 'principal:edit-user-view' user.pk %}"> Profile</a></li>
+                                    <li><a href="javascript:;">Help</a></li>
+                                    <li><a href="{% url 'logout' %}"><i class="fa fa-sign-out pull-right"></i> Log
+                                        Out</a></li>
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <!-- /top navigation -->
+
+            <!-- page content -->
+            <div class="right_col" role="main">
+                <div class="">
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12 col-xs-12">
+                            <div class="x_panel">
+                                <div class="x_title">
+                                    <h2>Task
+                                        <small>for {{ task_select.taskcode }}</small>
+                                    </h2>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="x_content">
+                                    <br/>
+                                    <form action="{% url 'principal:send-app-compatibility-view' task_select.id %}" method="POST" id="demo-form2" enctype="multipart/form-data" data-parsley-validate class="form-horizontal form-label-left">
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <label>Command: </label>
+                                                    {{ task_select.name }}
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <label>State: </label>
+                                                    {{ task_select.state }}
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <label>Creation Date: </label>
+                                                    {{ task_select.creation_date }}
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <label>File Input: </label>
+                                                    {{ task_select.file_input }}
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <label>File Output: </label>
+                                                    {{ task_select.file_output }}
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <label>App: </label>
+                                                    {{ task_select.app.name }}
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <label>App Compatibility: </label>
+                                                    <select name="compatibility_select">
+                                                        {% for comp in compatibility %}
+                                                        <option value="{{ comp.pk }}">{{ comp.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="ln_solid"></div>
+                                        <div class="form-group">
+                                            <div class="col-md-offset-8">
+                                                <input type="submit" class="btn btn-success" value="Send other aplication"/>
+                                            </div>
+                                        </div>
+                                        {% csrf_token %}
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer-distributed">
+    <div class="footer-left">
+
+        <h3>Gene & Genome <span>Annotation For Everybody</span></h3>
+
+        <p class="footer-links">
+            <a href="#">Citations</a>
+            ·
+            <a href="#">Help</a>
+            ·
+            <a href="#">About</a>
+            ·
+            <a href="#">Contact</a>
+        </p>
+
+        <p class="footer-company-name">CABD &copy; 2018</p>
+    </div>
+
+    <div class="footer-center">
+
+        <div>
+            <i class="fa fa-map-marker"></i>
+            <span style="color:white;">{{ company_name.address }}, Seville, Spain</span>
+        </div>
+
+        <div>
+            <i class="fa fa-phone"></i>
+            <p>{{ company_name.phone }}</p>
+        </div>
+
+        <div>
+            <i class="fa fa-envelope"></i>
+            <p>{{ company_name.email }}</p>
+        </div>
+
+    </div>
+
+    <div class="footer-right">
+
+        <p class="footer-company-about">
+            <span>About the company</span>
+            {{ company_name.description }}
+        </p>
+
+        <div class="footer-icons">
+
+            <a href="#"><i class="fa fa-facebook"></i></a>
+            <a href="#"><i class="fa fa-twitter"></i></a>
+            <a href="#"><i class="fa fa-linkedin"></i></a>
+            <a href="#"><i class="fa fa-github"></i></a>
+
+        </div>
+
+    </div>
+
+</footer>
+<!-- Bootstrap core JavaScript-->
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<!-- Page level plugin JavaScript-->
+<!-- FastClick -->
+<script src="{% static 'js/fastclick.js' %}"></script>
+<!-- NProgress -->
+<script src="{% static 'js/nprogress.js' %}"></script>
+<!-- Chart.js -->
+<script src="{% static 'vendor/chart.js/Chart.min.js' %}"></script>
+<!-- jQuery Sparklines -->
+<script src="{% static 'js/jquery.sparkline.min.js' %}"></script>
+<!-- Flot -->
+<script src="{% static 'js/jquery.flot.js' %}"></script>
+<script src="{% static 'js/jquery.flot.pie.js' %}"></script>
+<script src="{% static 'js/jquery.flot.time.js' %}"></script>
+<script src="{% static 'js/jquery.flot.stack.js' %}"></script>
+<script src="{% static 'js/jquery.flot.resize.js' %}"></script>
+<!-- Flot plugins -->
+<script src="{% static 'js/jquery.flot.orderBars.js' %}"></script>
+<script src="{% static 'js/jquery.flot.spline.min.js' %}"></script>
+<script src="{% static 'js/curvedLines.js' %}"></script>
+<!-- DateJS -->
+<script src="{% static 'js/date.js' %}"></script>
+<!-- Datatable -->
+<script src="{% static 'vendor/datatables/jquery.dataTables.js' %}"></script>
+<script src="{% static 'vendor/datatables/dataTables.bootstrap4.js' %}"></script>
+<!-- Custom scripts for all pages-->
+<script src="{% static 'js/custom.min.js' %}"></script>
+</body>
+
+</html>

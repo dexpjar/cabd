@@ -93,20 +93,53 @@ $(document).ready(function () {
         $(".register-info-wraper").show();
     });
 
-    $(".tr_table_param").click(function(){
+    $(".tr_table_param_file").click(function(){
         $("#name_param")[0].innerHTML = $(this).find(".table_name")[0].innerHTML;
-        $("#state_param")[0].innerHTML = $(this).find(".table_state")[0].innerHTML;
-        $("#allowedformat_param")[0].innerHTML = $(this).find(".table_allowedformat")[0].innerHTML;
-        $("#app_param")[0].innerHTML = $(this).find(".table_app")[0].innerHTML;
-        $("#required_param")[0].innerHTML = $(this).find(".table_required")[0].innerHTML;
-        $("#value_param")[0].innerHTML = $(this).find(".table_value")[0].innerHTML;
-        $("#info_param")[0].innerHTML = $(this).find(".table_info")[0].innerHTML;
-        $("#option_param")[0].innerHTML = $(this).find(".table_option")[0].innerHTML;
         $("#input_param")[0].innerHTML = $(this).find(".table_input")[0].innerHTML;
         $("#output_param")[0].innerHTML = $(this).find(".table_output")[0].innerHTML;
+        $("#type_param")[0].innerHTML = $(this).find(".table_type")[0].innerHTML;
+        $("#allowedformat_param")[0].innerHTML = $(this).find(".table_allowedformat")[0].innerHTML;
+        $("#app_param")[0].innerHTML = $(this).find(".table_app")[0].innerHTML;
+        $("#option_param")[0].innerHTML = $(this).find(".table_option")[0].innerHTML;
+        $("#info_param")[0].innerHTML = $(this).find(".table_info")[0].innerHTML;
         var id = $(this).find(".id_param").val();
-        $("#link_deleted_param").attr("href","/principal/delete_param_admin_view/"+id);
-        $("#link_edit_param").attr("href","/principal/edit_param_admin_view/"+id);
+        $("#link_deleted_param").attr("href","/principal/delete_param_file_admin_view/"+id);
+        $("#link_edit_param").attr("href","/principal/edit_param_file_admin_view/"+id);
+        $("#div_param_deleted").hide();
+        $(".register-info-wraper").show();
+    });
+
+    $(".tr_table_param_text").click(function(){
+        $("#name_param")[0].innerHTML = $(this).find(".table_name")[0].innerHTML;
+        $("#value_param")[0].innerHTML = $(this).find(".table_value")[0].innerHTML;
+        $("#app_param")[0].innerHTML = $(this).find(".table_app")[0].innerHTML;
+        $("#option_param")[0].innerHTML = $(this).find(".table_option")[0].innerHTML;
+        $("#info_param")[0].innerHTML = $(this).find(".table_info")[0].innerHTML;
+        var id = $(this).find(".id_param").val();
+        $("#link_deleted_param").attr("href","/principal/delete_param_text_admin_view/"+id);
+        $("#link_edit_param").attr("href","/principal/edit_param_text_admin_view/"+id);
+        $("#div_param_deleted").hide();
+        $(".register-info-wraper").show();
+    });
+
+    $(".tr_table_param_option").click(function(){
+        $("#value_param")[0].innerHTML = $(this).find(".table_value")[0].innerHTML;
+        $("#select_param")[0].innerHTML = $(this).find(".table_select")[0].innerHTML;
+        var id = $(this).find(".id_param").val();
+        $("#link_deleted_param").attr("href","/principal/delete_param_option_admin_view/"+id);
+        $("#link_edit_param").attr("href","/principal/edit_param_option_admin_view/"+id);
+        $("#div_param_deleted").hide();
+        $(".register-info-wraper").show();
+    });
+
+    $(".tr_table_param_select").click(function(){
+        $("#name_param")[0].innerHTML = $(this).find(".table_name")[0].innerHTML;
+        $("#app_param")[0].innerHTML = $(this).find(".table_app")[0].innerHTML;
+        $("#option_param")[0].innerHTML = $(this).find(".table_option")[0].innerHTML;
+        $("#info_param")[0].innerHTML = $(this).find(".table_info")[0].innerHTML;
+        var id = $(this).find(".id_param").val();
+        $("#link_deleted_param").attr("href","/principal/delete_param_select_admin_view/"+id);
+        $("#link_edit_param").attr("href","/principal/edit_param_select_admin_view/"+id);
         $("#div_param_deleted").hide();
         $(".register-info-wraper").show();
     });
