@@ -495,26 +495,22 @@ def download_task_view(request, pk):
     ftp.get(nombre_zip,local_dir)
     transport.close()
 
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    ssh.connect(hostname=ftp_host, port=22,
+                username=ftp_user, password=ftp_password)
+    nombre_zip = task_select.app.name + "-" + task_select.user.email + ".zip"
+
+    ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command("rm " + nombre_zip + "")
+    ssh.close()
+
     if os.path.exists(local_dir):
         with open(local_dir, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type="application/x-zip-compressed")
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(local_dir)
             return response
     raise Http404
-
-    apps = App.objects.all()
-    app_task = App.objects.get(pk=task_select.app.pk)
-    compatibility = app_task.app_compatibility.all()
-    company_name = MyCompany.objects.all()[:1].get()
-    current_user = request.user
-    context = {
-        'apps': apps,
-        'user': current_user,
-        'task_select': task_select,
-        'company_name': company_name,
-        'compatibility': compatibility,
-    }
-    return render(request, "form_task.html", context)
 
 def check_state_task_view(request, pk):
     # Obtenemos la tarea que vamos a descargar

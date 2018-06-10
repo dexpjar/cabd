@@ -196,9 +196,11 @@
                                             <div class="col-md-4">
                                                 <a class="btn btn-primary" href="{% url 'principal:check-state-task-view' task_select.id %}">Check State Analysis</a>
                                             </div>
+                                            {% if task_select.state == 'completed' %}
                                             <div class="col-md-4">
                                                 <a class="btn btn-danger" href="{% url 'principal:download-task-view' task_select.id %}">Download Result Analysis</a>
                                             </div>
+                                            {% endif %}
                                         </div>
                                         {% csrf_token %}
                                     </form>
