@@ -423,7 +423,7 @@ def create_task_view(request, pk):
                 command += " " + request.POST['file_output_option'] + " " + request.FILES['file_output'].name
 
         tasknew.name = command
-        tasknew.taskcode = taskcode + "-" + current_user.email + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        tasknew.taskcode = taskcode + "-" + current_user.email + datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
         tasknew.app_id = app_select
         tasknew.user = current_user
         tasknew.save()
