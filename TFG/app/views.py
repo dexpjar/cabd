@@ -1,19 +1,25 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from random import choice
+
 import timestamp as timestamp
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import EmailMessage
 from django.db.models import Q
 from django import forms
 from django.forms.utils import ErrorList
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404, redirect, render_to_response
+from django.contrib import messages
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.hashers import make_password
+from django.conf import settings
+from django.http import HttpResponse
 
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, FormView
@@ -21,10 +27,10 @@ from pexpect import pxssh
 
 from app.forms import RegisterForm, ProfileForm, EditForm, LoginForm, TaskForm, ImageSlideshowForm, UserForm, AppForm, \
     MyCompanyForm, SectionForm, TaskAdminForm, ParamForm, ParamFileForm, ParamTextForm, ParamOptionForm, \
-    ParamSelectForm, AppDetailForm
+    ParamSelectForm, AppDetailForm, UserPasswordForm
 from app.models import App, User, Profile, Task, Section, MyCompany, ImageSlideshow, ParamsInput, ParamsInputFile, \
     ParamsInputText, ParamsInputSelect, ParamInputOption, Compatibility
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.core.urlresolvers import reverse_lazy
 from django.utils import six
 
@@ -120,6 +126,7 @@ class AdminLogin(FormView):
             login(self.request, form.get_user())
             return super(AdminLogin, self).form_valid(form)
 
+#Menu Index : Contact, Getting Started
 
 def contact_view(request):
     company_name = MyCompany.objects.all()[:1].get()
@@ -128,6 +135,19 @@ def contact_view(request):
     }
     return render(request, 'contact.html', context)
 
+def getting_started_view(request):
+    company_name = MyCompany.objects.all()[:1].get()
+    context = {
+        'company_name': company_name,
+    }
+    return render(request, 'getting_started.html', context)
+
+def citations_view(request):
+    company_name = MyCompany.objects.all()[:1].get()
+    context = {
+        'company_name': company_name,
+    }
+    return render(request, 'citations.html', context)
 
 @login_required
 def detail_app_view(request, pk):
@@ -271,24 +291,14 @@ class SendAppCompatibilityView(LoginRequiredMixin, View):
     model = Task
     form_class = TaskForm
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, pk):
         apps = App.objects.all()
-        pk = kwargs['pk']
         task_select = Task.objects.get(pk=pk)
-        app_select = task_select.app
-        taskform = self.form_class(task_select,request.POST, task_select.file_input.file)
-        command = task_select.name.split(" ")
-        params_file = ParamsInputFile.objects.filter(app_id=app_select.pk)
-        # for param_file in params_file:
-        #     for c in range(len(command)):
-        #         if param_file.option == command[c] and param_file.type == "input":
-        #             taskform.initial.update({'file_input': task_select.file_input})
-        #             taskform.data.update({'file_input': task_select.file_input})
-        #             taskform.fields.file_input= task_select.file_input
-        #         elif param_file.option == command[c] and param_file.type == "output":
-        #             taskform.initial.update({'file_output': task_select.file_output})
-        params_text = ParamsInputText.objects.filter(app_id=app_select.pk)
-        params_select = ParamsInputSelect.objects.filter(app_id=app_select.pk)
+        app = task_select.app
+        taskform = self.form_class()
+        params_file = ParamsInputFile.objects.filter(app_id=app)
+        params_text = ParamsInputText.objects.filter(app_id=app)
+        params_select = ParamsInputSelect.objects.filter(app_id=app)
         params_option = {}
         for select in params_select:
             options = ParamInputOption.objects.filter(select_id=select.pk)
@@ -304,17 +314,17 @@ class SendAppCompatibilityView(LoginRequiredMixin, View):
             'user': current_user,
             'tasks': tasks,
             'company_name': company_name,
-            'app_select': app_select,
+            'app_select': app,
             'params_file': params_file,
             'params_text': params_text,
             'params_select': params_select,
+            'file_input_compatibility': task_select.file_input,
             'params_option': params_option,
             'taskform': taskform,
         }
-        return render(request, "form_app.html", context)
+        return render(request, "form_app_compatibility.html", context)
 
-
-
+# Crear Tarea
 
 def create_task_view(request, pk):
     if request.method == 'POST':
@@ -332,9 +342,85 @@ def create_task_view(request, pk):
                 else:
                     command += " " + valor
         if 'file_input_option' in request.POST:
-            command += " " + request.POST['file_input_option'] + " " + request.FILES['file_input'].name
+            param_file_input = ParamsInputFile.objects.get(app_id=app_select.pk, type='input')
+            list_input = param_file_input.allowed_format.split(',')
+            encontrado=False
+            for input in list_input:
+                if request.FILES['file_input'].name.endswith(str(input)):
+                    encontrado = True
+            if not encontrado:
+                apps = App.objects.all()
+                app_select = App.objects.get(pk=pk)
+                taskform = TaskForm()
+                params_file = ParamsInputFile.objects.filter(app_id=pk)
+                params_text = ParamsInputText.objects.filter(app_id=pk)
+                params_select = ParamsInputSelect.objects.filter(app_id=pk)
+                params_option = {}
+                for select in params_select:
+                    options = ParamInputOption.objects.filter(select_id=select.pk)
+                    params_option[select] = options
+                company_name = MyCompany.objects.all()[:1].get()
+                current_user = request.user
+                try:
+                    tasks = Task.objects.filter(user=current_user)
+                except Task.DoesNotExist:
+                    tasks = None
+                context = {
+                    'apps': apps,
+                    'user': current_user,
+                    'tasks': tasks,
+                    'company_name': company_name,
+                    'app_select': app_select,
+                    'params_file': params_file,
+                    'params_text': params_text,
+                    'params_select': params_select,
+                    'params_option': params_option,
+                    'taskform': taskform,
+                    'error_format_input':'true',
+                }
+                return render(request, "form_app.html", context)
+            else:
+                command += " " + request.POST['file_input_option'] + " " + request.FILES['file_input'].name
         if 'file_output_option' in request.POST:
-            command += " " + request.POST['file_output_option'] + " " + request.FILES['file_output'].name
+            param_file_output = ParamsInputFile.objects.get(app_id=app_select.pk, type='output')
+            list_output = param_file_output.allowed_format.split(',')
+            encontrado = False
+            for output in list_output:
+                if request.FILES['file_output'].name.endswith(str(output)):
+                    encontrado = True
+            if not encontrado:
+                apps = App.objects.all()
+                app_select = App.objects.get(pk=pk)
+                taskform = TaskForm()
+                params_file = ParamsInputFile.objects.filter(app_id=pk)
+                params_text = ParamsInputText.objects.filter(app_id=pk)
+                params_select = ParamsInputSelect.objects.filter(app_id=pk)
+                params_option = {}
+                for select in params_select:
+                    options = ParamInputOption.objects.filter(select_id=select.pk)
+                    params_option[select] = options
+                company_name = MyCompany.objects.all()[:1].get()
+                current_user = request.user
+                try:
+                    tasks = Task.objects.filter(user=current_user)
+                except Task.DoesNotExist:
+                    tasks = None
+                context = {
+                    'apps': apps,
+                    'user': current_user,
+                    'tasks': tasks,
+                    'company_name': company_name,
+                    'app_select': app_select,
+                    'params_file': params_file,
+                    'params_text': params_text,
+                    'params_select': params_select,
+                    'params_option': params_option,
+                    'taskform': taskform,
+                    'error_format_output':'true',
+                }
+                return render(request, "form_app.html", context)
+            else:
+                command += " " + request.POST['file_output_option'] + " " + request.FILES['file_output'].name
 
         tasknew.name = command
         tasknew.taskcode = taskcode + "-" + current_user.email + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -351,7 +437,9 @@ def create_task_view(request, pk):
         ftp = paramiko.sftp_client.SFTPClient.from_transport(transport)
 
         dir_remote = "/home/ftpsUser/input/pending/"+tasknew.taskcode+"/"
+        dir_remote_output = "/home/ftpsUser/output/" + tasknew.taskcode + "/"
         ftp.mkdir(dir_remote)
+        ftp.mkdir(dir_remote_output)
 
         local_file = tasknew.file_input.path
         remote_file = dir_remote + os.path.basename(tasknew.file_input.name)
@@ -375,6 +463,122 @@ def create_task_view(request, pk):
         return render(request, "dashboard.html",
                       {'apps': apps, 'user': current_user, 'tasks': tasks, 'company_name': company_name})
 
+# Descargar Tarea
+
+def download_task_view(request, pk):
+    # Obtenemos la tarea que vamos a descargar
+    task_select = Task.objects.get(pk=pk)
+
+    ftp_host = 'hpccluster.upo.es'
+    ftp_user = 'ftpsUser'
+    ftp_password = 'd86aewXiGUfxFy4'
+
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    ssh.connect(hostname=ftp_host, port=22,
+                username=ftp_user, password=ftp_password)
+    dir_remote_output = "output/" + task_select.taskcode + "/"
+    nombre_zip = task_select.app.name + "-" + task_select.user.email + ".zip"
+
+    ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command("python script_tar.py '" + nombre_zip + "' '"+dir_remote_output+"'")
+    ssh.close()
+
+
+
+    transport = paramiko.Transport((ftp_host, int(22)))
+    transport.connect(username=ftp_user, password=ftp_password)
+    ftp = paramiko.sftp_client.SFTPClient.from_transport(transport)
+
+    local_dir = settings.MEDIA_ROOT+"/files/output/"+nombre_zip
+
+    ftp.get(nombre_zip,local_dir)
+    transport.close()
+
+    if os.path.exists(local_dir):
+        with open(local_dir, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/x-zip-compressed")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(local_dir)
+            return response
+    raise Http404
+
+    apps = App.objects.all()
+    app_task = App.objects.get(pk=task_select.app.pk)
+    compatibility = app_task.app_compatibility.all()
+    company_name = MyCompany.objects.all()[:1].get()
+    current_user = request.user
+    context = {
+        'apps': apps,
+        'user': current_user,
+        'task_select': task_select,
+        'company_name': company_name,
+        'compatibility': compatibility,
+    }
+    return render(request, "form_task.html", context)
+
+def check_state_task_view(request, pk):
+    # Obtenemos la tarea que vamos a descargar
+    task_select = Task.objects.get(pk=pk)
+    server = 'hpccluster.upo.es'
+    username = 'ftpsUser'
+    password = 'd86aewXiGUfxFy4'
+    # Conexion por SSH
+
+    transport = paramiko.Transport((server, int(22)))
+    transport.connect(username=username, password=password)
+    ftp = paramiko.sftp_client.SFTPClient.from_transport(transport)
+    path_dir ="/home/ftpsUser/input/pending/"+task_select.taskcode
+    try:
+        ftp.stat(path_dir)
+        state = 'PENDING'
+        task_select.state = state.lower()
+        apps = App.objects.all()
+        app_task = App.objects.get(pk=task_select.app.pk)
+        compatibility = app_task.app_compatibility.all()
+        company_name = MyCompany.objects.all()[:1].get()
+        current_user = request.user
+        context = {
+            'apps': apps,
+            'user': current_user,
+            'task_select': task_select,
+            'company_name': company_name,
+            'compatibility': compatibility,
+            'check_state': state,
+        }
+        return render(request, "form_task.html", context)
+    except IOError, e:
+        pass
+    transport.close()
+    ftp.close()
+
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    ssh.connect(hostname=server, port=22,
+                   username=username, password=password)
+
+    ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command("python script_select_db.py '"+task_select.taskcode+"'")
+    stdin, stdout, stderr = ssh.exec_command('cat /home/ftpsUser/state_job.txt')
+    remote_file = stdout.readlines()
+    state = str(remote_file[2]).split('+')[0]
+    task_select.state = state.lower()
+    ssh.close()
+
+    apps = App.objects.all()
+    app_task = App.objects.get(pk=task_select.app.pk)
+    compatibility = app_task.app_compatibility.all()
+    company_name = MyCompany.objects.all()[:1].get()
+    current_user = request.user
+    context = {
+        'apps': apps,
+        'user': current_user,
+        'task_select': task_select,
+        'company_name': company_name,
+        'compatibility': compatibility,
+        'check_state':state,
+    }
+    return render(request, "form_task.html", context)
+
 
 class AppListViewAlt(ListView):
     model = App
@@ -384,24 +588,50 @@ class TaskListViewAlt(ListView):
     model = Task
 
 
-def change_password(request, pk):
-    user = get_object_or_404(User, pk=pk)
-    profile = get_object_or_404(Profile, pk=pk)
-    userform = EditForm(initial={
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'email': user.email,
-    })
-    userprofileform = ProfileForm(initial={
-        'institution': profile.institution,
-    })
+def change_password(request):
+    company_name = MyCompany.objects.all()[:1].get()
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            return render(request, 'change_password.html', {
+                'form': form, 'success_password': 'true', 'company_name': company_name})
+        else:
+            form = PasswordChangeForm(request.user)
+            return render(request, 'change_password.html', {
+                'form': form, 'error_password':'true','company_name': company_name})
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'change_password.html', {
+        'form': form,'company_name': company_name})
 
-    context = {
-        'userform': userform,
-        'userprofileform': userprofileform
-    }
-    return render(request, 'edit_profile.html', context)
 
+def forget_password(request):
+    company_name = MyCompany.objects.all()[:1].get()
+    form = UserPasswordForm()
+    return render(request, 'forgot_password.html', {
+                'form': form,'company_name': company_name})
+
+def send_password(request):
+    company_name = MyCompany.objects.all()[:1].get()
+    userform = UserPasswordForm(request.POST)
+    user = User.objects.filter(email=userform.cleaned_data['email'])
+    form = UserPasswordForm()
+    if not user:
+        return render(request, 'forgot_password.html', {
+            'form': form, 'company_name': company_name,'error_email':'true'})
+    else:
+        user = User.objects.get(email=userform.cleaned_data['email'])
+        password_new = ''.join([choice('abcdefghijklmnopqrstuvwxyz0123456789%^*(-_=+)') for i in range(32)])
+        user.set_password(password_new)
+        user.save()
+        asunto = "Change password in GGAFE " + user.email
+        mensaje = "The password has been changed, the new password is: " + password_new
+        mail = EmailMessage(asunto, mensaje, to=[user.email])
+        mail.send()
+        return render(request, 'forgot_password.html', {
+                'form': form,'company_name': company_name,'password_sent':'true'})
 
 class UserUpdate(UpdateView):
     model = User

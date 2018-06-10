@@ -65,6 +65,16 @@ class UserForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(),
         }
 
+
+class UserPasswordForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ['email']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control','placeholder': 'Email'}),
+        }
+
 class EditForm(forms.ModelForm):
     class Meta:
         model = User

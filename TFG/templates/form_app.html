@@ -29,6 +29,36 @@
 
     <!-- Css Form App -->
     <link href="{% static 'css/form_app.css' %}" rel="stylesheet">
+    <!--<script type="text/javascript">-->
+        <!--function Validate(oForm) {-->
+            <!--var _validFileExtensions = $("#file_allowed_input").val();-->
+            <!--var arrInputs = oForm.getElementsByTagName("input");-->
+            <!--for (var i = 0; i < arrInputs.length; i++) {-->
+                <!--var oInput = arrInputs[i];-->
+                <!--if (oInput.type == "file") {-->
+                    <!--var sFileName = oInput.value;-->
+                    <!--if (sFileName.length > 0) {-->
+                        <!--var blnValid = false;-->
+                        <!--for (var j = 0; j < _validFileExtensions.length; j++) {-->
+                            <!--var sCurExtension = _validFileExtensions[j];-->
+                            <!--if (sFileName.substr(sFileName.length - sCurExtension.length, sCurExtension.length).toLowerCase() == sCurExtension.toLowerCase()) {-->
+                                <!--blnValid = true;-->
+                                <!--break;-->
+                            <!--}-->
+                        <!--}-->
+
+                        <!--if (!blnValid) {-->
+                            <!--$("#error_format_message").text("Sorry, " + sFileName + " is invalid, allowed extensions are: " + _validFileExtensions.join(", "));-->
+                            <!--$("#error_format").show();-->
+                            <!--return false;-->
+                        <!--}-->
+                    <!--}-->
+                <!--}-->
+            <!--}-->
+
+            <!--return true;-->
+        <!--}-->
+    <!--</script>-->
 </head>
 
 <body class="nav-md">
@@ -127,10 +157,30 @@
                                 </div>
                                 <div class="x_content">
                                     <br/>
-                                    <form action="{% url 'principal:create-task-view' app_select.id %}" method="POST" id="demo-form2" enctype="multipart/form-data" data-parsley-validate class="form-horizontal form-label-left">
+                                    <form action="{% url 'principal:create-task-view' app_select.id %}" method="POST" id="demo-form2" enctype="multipart/form-data" data-parsley-validate class="form-horizontal form-label-left" onsubmit="return Validate(this);">
                                         <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div id="error_format" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong id="error_format_message"></strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" id="file_allowed_input" name="file_allowed_input" value="{{ file_allowed_input }}">
+                                            <input type="hidden" name="file_allowed_output" value="{{ file_allowed_output }}">
                                             {% for file in params_file %}
                                             {% if file.type == 'input' %}
+                                                {% if error_format_input == 'true' %}
+                                                    <div class="row">
+                                                            <br/>
+                                                            <div class="alert alert-danger">
+                                                                <strong>Error!</strong> Wrong format of the file input
+                                                            </div>
+                                                    </div>
+                                                {% endif %}
                                             <div class="row">
                                                 <label class="control-label col-md-3 col-sm-3 col-xs-12">
                                                     <div class="info-hover"><i class="fa fa-info-circle"  style="size:1px;"></i>
@@ -144,6 +194,14 @@
                                                 </div>
                                             </div>
                                             {% else %}
+                                                {% if error_format_output == 'true' %}
+                                                    <div class="row">
+                                                            <br/>
+                                                            <div class="alert alert-danger">
+                                                                <strong>Error!</strong> Wrong format of the file output
+                                                            </div>
+                                                    </div>
+                                                {% endif %}
                                             <div class="row">
                                                 <label class="control-label col-md-3 col-sm-3 col-xs-12">
                                                     <div class="info-hover"><i class="fa fa-info-circle"  style="size:1px;"></i>

@@ -91,10 +91,10 @@ class Section(models.Model):
 
 
 class Task(models.Model):
-    LIST_STATES = (('pending','Pending'),('in_queue','In Queue'),('completed','Completed'),('canceled','Canceled'))
+    LIST_STATES = (('pending','Pending'),('in_queue','In Queue'),('in_queue','In Queue'),('completed','Completed'),('canceled','Canceled'))
 
     taskcode = models.CharField('TaskCode', max_length=100)
-    name = models.CharField('Name', max_length=100)
+    name = models.CharField('Name', max_length=300)
     state = models.CharField(
         max_length=15,
         choices=LIST_STATES,

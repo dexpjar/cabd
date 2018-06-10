@@ -20,21 +20,59 @@ from app.views import detail_app_view, AppListView, create_user_view, \
     DeleteParamInputTextAdminListView, EditParamInputTextAdminListView, ParamInputOptionAdminListView, \
     NewParamInputOptionAdminListView, DeleteParamInputOptionAdminListView, EditParamInputOptionAdminListView, \
     ParamInputSelectAdminListView, NewParamInputSelectAdminListView, DeleteParamInputSelectAdminListView, \
-    EditParamInputSelectAdminListView, TaskDetailView, SendAppCompatibilityView
+    EditParamInputSelectAdminListView, TaskDetailView, SendAppCompatibilityView, getting_started_view, citations_view, \
+    forget_password, send_password, download_task_view, check_state_task_view
 
 urlpatterns = [
+    #Registro
     url(r'^create_user/$',create_user_view, name = 'create-user-view'),
+
+    #Ventana detalles aplicacion
     url(r'^detail/(?P<pk>\d+)$', detail_app_view, name='detail-apps-view'),
+
+    #Ventana tabla con las tareas de la aplicacion
     url(r'^tasks/(?P<pk>\d+)$', tasks_app_view, name='tasks-apps-view'),
+
+    #Formulario creacion tarea
     url(r'^app/form/(?P<pk>\d+)$', login_required(AppFormView.as_view()), name='form-apps-view'),
+
+    #Vista detalles de tarea individual
     url(r'^task/detail/(?P<pk>\d+)$', login_required(TaskDetailView.as_view()), name='task-detail-view'),
+
+    #Enviar parametros a aplicacion compatible
     url(r'^send_app_compatibility/(?P<pk>\d+)$', login_required(SendAppCompatibilityView.as_view()), name='send-app-compatibility-view'),
+
+    #Menu principal del dashboard
     url(r'^dashboard/$', login_required(AppListView.as_view()), name='list-apps-view'),
+
+    #Editar usuario
     url(r'^user/edit/(?P<pk>\d+)$', login_required(UserUpdate.as_view()), name='edit-user-view'),
-    url(r'^user/password/(?P<pk>\d+)$', change_password, name='change-password'),
+
+    #Cambiar password
+    url(r'^password/$', change_password, name='change_password'),
+
+    #Olvido password
+    url(r'^forget_password/$', forget_password, name='forget-password-view'),
+    url(r'^send_password/$', send_password, name='send-password-view'),
+
+    #Menu Index
     url(r'^contact/$', contact_view, name='contact-view'),
+    url(r'^getting_started/$', getting_started_view, name='getting-started-view'),
+    url(r'^citations/$', citations_view, name='citations-view'),
+
+    # Crear Tarea
     url(r'^create_task/(?P<pk>\d+)$',login_required(create_task_view), name = 'create-task-view'),
+
+    # Descargar Tarea
+    url(r'^download_task/(?P<pk>\d+)$',login_required(download_task_view), name = 'download-task-view'),
+
+    # Ver Estado Tarea
+    url(r'^check_state_task/(?P<pk>\d+)$',login_required(check_state_task_view), name = 'check-state-task-view'),
+
+    # Dashboard admin
     url(r'^admin_view/$', login_required(admin_view), name='admin-view'),
+
+
     # Admin User
     url(r'^user_admin_view/$', login_required(UserAdminListView.as_view()), name='list-user-admin-view'),
     url(r'^new_user_admin_view/$', login_required(NewUserAdminListView.as_view()), name='new-user-admin-view'),

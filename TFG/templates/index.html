@@ -67,11 +67,11 @@
                 </div>
                 <div class="col-xs-6 text-right menu-1">
                     <ul>
-                        <li><a href="pricing.html">Getting Started</a></li>
+                        <li><a href="{% url 'principal:getting-started-view' %}">Getting Started</a></li>
                         <li class="has-dropdown">
                             <a href="#">About</a>
                             <ul class="dropdown">
-                                <li><a href="#">Citations</a></li>
+                                <li><a href="{% url 'principal:citations-view' %}">Citations</a></li>
                                 <li><a href="http://www.bioinfocabd.upo.es/">Genetics Bioinformatics Group</a></li>
                             </ul>
                         </li>
@@ -144,19 +144,13 @@
                                                     <label>Username:</label>
                                                     <div class="form-group">
                                                         {{ form.username }}
-                                                        <!--<input class="form-control" placeholder="Username" name="username" type="text">-->
                                                     </div>
                                                     <label>Password:</label>
                                                     <div class="form-group">
                                                         {{ form.password }}
-                                                        <!--<input class="form-control" placeholder="Password" name="password" type="password" value="">-->
                                                     </div>
-                                                    <div class="checkbox">
-                                                        <label>
-                                                            <input name="remember" type="checkbox" value="Remember Me">
-                                                            Remember Me
-                                                        </label>
-                                                    </div>
+                                                    <a class="d-block medium mt-3 link-register"
+                                                       href="{% url 'principal:forget-password-view' %}">Forgot password?</a>
                                                     <br/>
                                                     <input class="btn btn-lg btn-success btn-block" type="submit"
                                                            value="Login">

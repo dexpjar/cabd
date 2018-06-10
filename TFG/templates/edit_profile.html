@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>CABD-Edit Profile</title>
+    <link rel="icon" type="image/jpg" href="{% static 'img/logo.jpg' %}"/>
     <!-- Bootstrap core CSS-->
     <link href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet"/>
     <link href="{% static 'css/footer-distributed-with-address-and-phones.css' %}" rel="stylesheet">
@@ -117,6 +118,11 @@
                                         {% csrf_token %}
                                         <br/>
                                         <input class="btn btn-primary btn-block" type="submit" value="Save Changes">
+                                    </form>
+                                    <br/>
+                                    <form action="{% url 'principal:change_password' %}" method="get">
+                                        {% csrf_token %}
+                                        <input class="btn btn-success btn-block" type="submit" value="Change Password?">
                                     </form>
                                 </div>
                             </div>

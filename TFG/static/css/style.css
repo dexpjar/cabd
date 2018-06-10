@@ -1903,3 +1903,6 @@ form label {
   padding-bottom: 30px;
 }
 /*# sourceMappingURL=style.css.map */
+.change_password_form input{
+    color:black;
+}
