@@ -336,7 +336,7 @@ def create_task_view(request, pk):
         taskcode = app_select.taskcode
         current_user = request.user
         for valor in request.POST:
-            if valor != 'csrfmiddlewaretoken' and valor != 'file_input_option' and valor != 'file_output_option':
+            if valor != 'csrfmiddlewaretoken' and valor != 'file_input_option' and valor != 'file_output_option' and valor!= 'file_allowed_input' and valor!= 'file_allowed_output':
                 if request.POST[valor]:
                     command += " " + valor + " " + request.POST[valor]
                 else:
@@ -430,14 +430,14 @@ def create_task_view(request, pk):
 
         # Conexion al FTP
         ftp_host = 'hpccluster.upo.es'
-        ftp_user = 'ftpsUser'
+        ftp_user = 'ftpsuser'
         ftp_password = 'd86aewXiGUfxFy4'
         transport = paramiko.Transport((ftp_host, int(22)))
         transport.connect(username=ftp_user, password=ftp_password)
         ftp = paramiko.sftp_client.SFTPClient.from_transport(transport)
 
-        dir_remote = "/home/ftpsUser/input/pending/"+tasknew.taskcode+"/"
-        dir_remote_output = "/home/ftpsUser/output/" + tasknew.taskcode + "/"
+        dir_remote = "/home/ftpsuser/input/pending/"+tasknew.taskcode+"/"
+        dir_remote_output = "/home/ftpsuser/output/" + tasknew.taskcode + "/"
         ftp.mkdir(dir_remote)
         ftp.mkdir(dir_remote_output)
 
@@ -470,7 +470,7 @@ def download_task_view(request, pk):
     task_select = Task.objects.get(pk=pk)
 
     ftp_host = 'hpccluster.upo.es'
-    ftp_user = 'ftpsUser'
+    ftp_user = 'ftpsuser'
     ftp_password = 'd86aewXiGUfxFy4'
 
     ssh = paramiko.SSHClient()
@@ -516,14 +516,14 @@ def check_state_task_view(request, pk):
     # Obtenemos la tarea que vamos a descargar
     task_select = Task.objects.get(pk=pk)
     server = 'hpccluster.upo.es'
-    username = 'ftpsUser'
+    username = 'ftpsuser'
     password = 'd86aewXiGUfxFy4'
     # Conexion por SSH
 
     transport = paramiko.Transport((server, int(22)))
     transport.connect(username=username, password=password)
     ftp = paramiko.sftp_client.SFTPClient.from_transport(transport)
-    path_dir ="/home/ftpsUser/input/pending/"+task_select.taskcode
+    path_dir ="/home/ftpsuser/input/pending/"+task_select.taskcode
     try:
         ftp.stat(path_dir)
         state = 'PENDING'
@@ -554,10 +554,14 @@ def check_state_task_view(request, pk):
                    username=username, password=password)
 
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command("python script_select_db.py '"+task_select.taskcode+"'")
-    stdin, stdout, stderr = ssh.exec_command('cat /home/ftpsUser/state_job.txt')
+    stdin, stdout, stderr = ssh.exec_command('cat /home/ftpsuser/state_job.txt')
     remote_file = stdout.readlines()
-    state = str(remote_file[2]).split('+')[0]
-    task_select.state = state.lower()
+    if not remote_file:
+        task_select.state = 'in_queue'
+        state = 'IN QUEUE'
+    else:
+        state = str(remote_file[2]).split('+')[0]
+        task_select.state = state.lower()
     ssh.close()
 
     apps = App.objects.all()

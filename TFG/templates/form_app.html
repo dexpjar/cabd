@@ -30,34 +30,14 @@
     <!-- Css Form App -->
     <link href="{% static 'css/form_app.css' %}" rel="stylesheet">
     <!--<script type="text/javascript">-->
-        <!--function Validate(oForm) {-->
-            <!--var _validFileExtensions = $("#file_allowed_input").val();-->
-            <!--var arrInputs = oForm.getElementsByTagName("input");-->
-            <!--for (var i = 0; i < arrInputs.length; i++) {-->
-                <!--var oInput = arrInputs[i];-->
-                <!--if (oInput.type == "file") {-->
-                    <!--var sFileName = oInput.value;-->
-                    <!--if (sFileName.length > 0) {-->
-                        <!--var blnValid = false;-->
-                        <!--for (var j = 0; j < _validFileExtensions.length; j++) {-->
-                            <!--var sCurExtension = _validFileExtensions[j];-->
-                            <!--if (sFileName.substr(sFileName.length - sCurExtension.length, sCurExtension.length).toLowerCase() == sCurExtension.toLowerCase()) {-->
-                                <!--blnValid = true;-->
-                                <!--break;-->
-                            <!--}-->
-                        <!--}-->
-
-                        <!--if (!blnValid) {-->
-                            <!--$("#error_format_message").text("Sorry, " + sFileName + " is invalid, allowed extensions are: " + _validFileExtensions.join(", "));-->
-                            <!--$("#error_format").show();-->
-                            <!--return false;-->
-                        <!--}-->
-                    <!--}-->
+        <!--$(document).ready(function(){-->
+            <!--$( "#create" ).submit(function() {-->
+                <!--if($("input:empty").length != 0){-->
+                    <!--$("#error_empty").show();-->
+                    <!--return False;-->
                 <!--}-->
-            <!--}-->
-
-            <!--return true;-->
-        <!--}-->
+            <!--});-->
+        <!--});-->
     <!--</script>-->
 </head>
 
@@ -169,6 +149,16 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div id="error_empty" style="display:none;">
+                                                        <br/>
+                                                        <div class="alert alert-danger">
+                                                            <strong>Error! All input are required</strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <input type="hidden" id="file_allowed_input" name="file_allowed_input" value="{{ file_allowed_input }}">
                                             <input type="hidden" name="file_allowed_output" value="{{ file_allowed_output }}">
                                             {% for file in params_file %}
@@ -255,7 +245,7 @@
                                         <div class="ln_solid"></div>
                                         <div class="form-group">
                                             <div class="col-md-offset-8">
-                                                <input type="submit" class="btn btn-success" value="Create task"/>
+                                                <input type="submit" id="create" class="btn btn-success" value="Create task"/>
                                             </div>
                                         </div>
                                         {% csrf_token %}
